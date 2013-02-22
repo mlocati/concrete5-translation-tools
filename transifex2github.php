@@ -86,14 +86,14 @@ try {
 	if(!is_dir('.git')) {
 		write("Initializing git... ");
 		run('git', 'clone git://github.com/' . GITHUB_USER . '/' . GITHUB_REPOSITORY . '.git .');
-		run('git', 'checkout master');
+		run('git', 'checkout ' . GITHUB_BRANCH);
 		write("done.\n");
 	}
 	else {
 		write("Updading local repository... ");
-		run('git', 'checkout master');
+		run('git', 'checkout ' . GITHUB_BRANCH);
 		run('git', 'fetch origin');
-		run('git', 'reset --hard origin/master');
+		run('git', 'reset --hard origin/' . GITHUB_BRANCH);
 		run('git', 'clean -f -d');
 		write("done.\n");
 	}
@@ -151,7 +151,7 @@ try {
 		write("Committing to git...");
 		run('git', 'add --all');
 		run('git', 'commit -m "Transifex update"');
-		run('git', 'push origin master');
+		run('git', 'push origin ' . GITHUB_BRANCH);
 		write("done.\n");
 	}
 }
