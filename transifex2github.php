@@ -1,5 +1,11 @@
 <?php
+/* Define in cretentials.php:
+* define('TRANSIFEX_USER', 'Transifex user name');
+* define('TRANSIFEX_PASSWORD', 'Transifex password');
+* define('GITHUB_USER', 'GitHub user name');
+*/
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'credentials.php';
+
 define('TRANSIFEX_HOST', 'https://www.transifex.com');
 define('TRANSIFEX_PROJECT', 'mlocati-test');
 
