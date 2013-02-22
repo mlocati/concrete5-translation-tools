@@ -61,7 +61,7 @@ try {
 					'untranslated' => intval($matchUntranslated[1]),
 					'fuzzy' => 0
 				);
-				if(preg_match('/\\d+ fuzzy translations/', $outputLine, $matchFuzzy)) {
+				if(preg_match('/(\\d+) fuzzy translations/', $outputLine, $matchFuzzy)) {
 					$downloadedInfo['fuzzy'] = intval($matchFuzzy[1]);
 				}
 				$downloadedInfo['total'] = $downloadedInfo['translated'] + $downloadedInfo['untranslated'] + $downloadedInfo['fuzzy'];
