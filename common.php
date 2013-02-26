@@ -8,7 +8,8 @@
  * @throws Exception Throws an exception in case of errors.
  */
 function run($command, $arguments = '', $goodResult = 0, &$output = null) {
-	$line = escapeshellarg($command);
+	$hereCommand = dirname(__FILE__) . DIRECTORY_SEPARATOR . $command;
+	$line = escapeshellarg(is_file($hereCommand) ? $hereCommand : $command);
 	if(is_array($arguments)) {
 		if(count($arguments)) {
 			$line .= ' ' . implode(' ', $arguments);
