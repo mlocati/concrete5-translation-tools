@@ -46,7 +46,7 @@ try {
 	}
 	else {
 		write("Updading local repository... ");
-		run('git', 'checkout ' . GITHUB_BRANCH);
+		run('git', 'checkout ' . LANGCOPY_GITHUB_BRANCH);
 		run('git', 'fetch origin');
 		run('git', 'reset --hard origin/' . LANGCOPY_GITHUB_BRANCH);
 		run('git', 'clean -f -d');
