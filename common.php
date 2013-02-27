@@ -83,9 +83,10 @@ function write($str, $isErr = false) {
 }
 
 /** Pulls data from Transifex into the TRANSIFEX_LOCALFOLDER folder.
+* @param bool $reset [default: false] Force reload of all Translations (useful to clean dirty local .po files).
 * @throws Exception
 */
-function pullTransifex() {
+function pullTransifex($reset = false) {
 	if(!is_dir(TRANSIFEX_LOCALFOLDER)) {
 		@mkdir(TRANSIFEX_LOCALFOLDER, 0777, true);
 		if(!is_dir(TRANSIFEX_LOCALFOLDER)) {
@@ -93,6 +94,10 @@ function pullTransifex() {
 		}
 	}
 	chdir(TRANSIFEX_LOCALFOLDER);
+	if($reset) {
+		deleteFolder(TRANSIFEX_LOCALFOLDER . DIRECTORY_SEPARATOR . '.tx');
+		deleteFolder(TRANSIFEX_LOCALFOLDER . DIRECTORY_SEPARATOR . 'translations');
+	}
 	if(!is_dir('.tx')) {
 		write("Initializing Transifex... ");
 		run('tx', 'init --host=' . escapeshellarg(TRANSIFEX_HOST) . ' --user=' . escapeshellarg(TRANSIFEX_USERNAME) . ' --pass=' . escapeshellarg(TRANSIFEX_PASSWORD));
@@ -108,6 +113,14 @@ function pullTransifex() {
 
 /** Represents a .po (and .mo) translation. */
 class Translation {
+	/** The resource slug. 
+	* @var string
+	*/
+	public $resourceSlug;
+	/** The language code.
+	 * @var string
+	 */
+	public $languageCode;
 	/** Absolute location of the .po file (in the Transifex folder).
 	* @var string
 	*/
@@ -147,8 +160,13 @@ class Translation {
 	* @param string $poRelative
 	*/
 	private function __construct($poAbsolute, $poRelative) {
+		if(!preg_match('/^' . preg_quote(TRANSIFEX_PROJECT, '/') . '\\.([^' . preg_quote(DIRECTORY_SEPARATOR, '/') . ']+)' . preg_quote(DIRECTORY_SEPARATOR, '/') . '(([^' . preg_quote(DIRECTORY_SEPARATOR, '/') . ']+)\\.po)$/i', $poRelative, $m)) {
+			throw new Exception("Invalid relative po file name: '$poRelative'");
+		}
+		$this->resourceSlug = $m[1];
+		$this->languageCode = $m[3];
+		$this->poRelative = $this->resourceSlug . DIRECTORY_SEPARATOR . $m[2];
 		$this->poAbsolute = $poAbsolute;
-		$this->poRelative = $poRelative;
 		$this->moAbsolute = preg_replace('/\\.po$/i', '.mo', $this->poAbsolute);
 		$this->moRelative = preg_replace('/\\.po$/i', '.mo', $this->poRelative);
 		$this->poAbsoluteGit = LANGCOPY_LOCALFOLDER . DIRECTORY_SEPARATOR . $this->poRelative;
@@ -201,7 +219,7 @@ class Translation {
 		if(!($hDir = @opendir($absFolder))) {
 			throw new Exception("Unable to open folder '$relFolder'");
 		}
-		while($item = @readdir($hDir)) {
+		while(($item = @readdir($hDir)) !== false) {
 			switch($item) {
 				case '.':
 				case '..':
@@ -213,9 +231,6 @@ class Translation {
 						$subFolders[] = array('abs' => $absItem, 'rel' => $relItem);
 					}
 					elseif(preg_match('/.\\.po$/i', $item)) {
-						if(preg_match('/^' . preg_quote(TRANSIFEX_PROJECT, '/') . '\\.(.+)$/i', $relItem, $m)) {
-							$relItem = $m[1];
-						}
 						$translations[] = new $class($absItem, $relItem);
 					}
 					break;
@@ -295,5 +310,81 @@ class Translation {
 		if(!@fwrite($hStats, str_replace(DIRECTORY_SEPARATOR, '/', $this->poRelative) . "\t{$this->stats['translated']}/{$$this->stats['total']} translated ({$$this->stats['percentual']}%)\n")) {
 			throw new Exception("Error writing statistics to file");
 		}
+	}
+	/** Copy the .po file in a new Transifex resource.
+	* @param string $newResouceSlug The slug of the new resource.
+	* @throws Exception
+	*/
+	public function cloneIntoResource($newResouceSlug) {
+		$destFolder = TRANSIFEX_LOCALFOLDER . DIRECTORY_SEPARATOR . 'translations' . DIRECTORY_SEPARATOR . TRANSIFEX_PROJECT . '.' . $newResouceSlug;
+		if(!is_dir($destFolder)) {
+			@mkdir($destFolder, 0777, true);
+			if(!is_dir($destFolder)) {
+				throw new Exception("Unable to create folder '" . $destFolder . "'");
+			}
+		}
+		$cloneName = $destFolder . DIRECTORY_SEPARATOR . $this->languageCode . '.po';
+		if(is_file($cloneName)) {
+			throw new Exception("The file '$cloneName' already exists");
+		}
+		if(!@copy($this->poAbsolute, $cloneName)) {
+			throw new Exception("Error copying from\n{$this->poAbsolute}\nto\n$cloneName");
+		}
+	}
+}
+
+/** Deletes a folder, if exists.
+* @param string $folderName The folder to delete.
+* @throws Exception Throws an Exception if $folderName is not a deletable folder. 
+*/
+function deleteFolder($folder) {
+	if(is_file($folder)) {
+		throw new Exception("'$folder' is a file, not a folder");
+	}
+	if(!is_dir($folder)) {
+		return;
+	}
+	$s = realpath($folder);
+	if($s === false) {
+		throw new Exception("realpath() failed on '$folder'");
+	}
+	$folder = $s;
+	if(!is_writable($folder)) {
+		throw new Exception("'$folder' is not a writable folder");
+	}
+	$subFolders = array();
+	if(!($hDir = @opendir($folder))) {
+		throw new Exception("Error while opening '$folder'");
+	}
+	try {
+		while(($item = @readdir($hDir)) !== false) {
+			switch($item) {
+				case '.':
+				case '..':
+					break;
+				default:
+					$absItem = $folder . DIRECTORY_SEPARATOR . $item;
+					if(is_dir($absItem)) {
+						$subFolders[] = $absItem;
+					}
+					else {
+						if(!@unlink($absItem)) {
+							throw new Exception("Error deleting file '$absItem'");
+						}
+					}
+					break;
+			}
+		}
+	}
+	catch(Exception $x) {
+		@closedir($hDir);
+		throw $x;
+	}
+	@closedir($hDir);
+	foreach($subFolders as $subFolder) {
+		deleteFolder($subFolder);
+	}
+	if(!@rmdir($folder)) {
+		throw new Exception("rmdir() failed on '$folder'");
 	}
 }

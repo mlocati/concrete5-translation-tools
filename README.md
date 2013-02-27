@@ -8,3 +8,6 @@ Generates a .pot file from the concrete5 core and moves that .pot file to a loca
 
 ## transifex2github.php
 Download translations from Transifex and updates (if necessary) a repository on GitHub containing the .po and .mo files.
+
+## transifex-add-version.php
+Clones .po translations from a Transifex resource to another (empty) Transifex resource.
