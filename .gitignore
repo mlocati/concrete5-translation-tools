@@ -1,21 +1,7 @@
 /.settings
-/.project
+/work
 /.buildpath
-/transifex
-/github
+/.project
 /credentials.php
-/tools
-/src
 
-/txclib/__init__.pyc
-/txclib/commands.pyc
-/txclib/config.pyc
-/txclib/exceptions.pyc
-/txclib/http_utils.pyc
-/txclib/log.pyc
-/txclib/parsers.pyc
-/txclib/processors.pyc
-/txclib/project.pyc
-/txclib/urls.pyc
-/txclib/utils.pyc
-/txclib/web.pyc
+/txclib/*.pyc
