@@ -2,6 +2,10 @@
 
 /** A Transifex connector */
 class Transifexer {
+	/** Transifex host.
+	* @var string
+	*/
+	private $host;
 	/** Transifex user name.
 	* @var string
 	*/
@@ -24,6 +28,7 @@ class Transifexer {
 	*/
 	private $proxy;
 	/** Initializes the instance.
+	* @param string $host The Transifex host.
 	* @param string $username The Transifex user name.
 	* @param string $password The Transifex password.
 	* @param bool $checkSSL [default: false] Set to false to stop cURL from verifying the peer's certificate the existence of a common name in the SSL peer certificate.
@@ -34,7 +39,8 @@ class Transifexer {
 	*	<li>string <b>password</b> proxy password</li>
 	* </ul>
 	*/
-	public function __construct($username, $password, $checkSSL = false, $proxy = null) {
+	public function __construct($host, $username, $password, $checkSSL = false, $proxy = null) {
+		$this->host = rtrim($host, '/');
 		$this->username = $username;
 		$this->password = $password;
 		$this->checkSSL = $checkSSL;
@@ -52,11 +58,12 @@ class Transifexer {
 	}
 	/** Perform a query to Transifex.
 	* @param string $query The Transifex url to query (without host).
+	* @param array|null $postData The data to post (null for a GET operation).
 	* @param bool $decodeJSON [default: true] Do we have to decode the result considering it as json?
 	* @return mixed
 	* @throws TransifexerException Throws a TransifexerException in case of errors.
 	*/
-	protected function query($query, $decodeJSON = true) {
+	protected function query($query, $postData = null, $decodeJSON = true) {
 		global $php_errormsg;
 		if(!function_exists('curl_init')) {
 			throw TransifexerException::getByCode(TransifexerException::CURL_NOT_INSTALLED);
@@ -99,7 +106,18 @@ class Transifexer {
 			if(!@curl_setopt($hCurl, CURLOPT_HEADER, false)) {
 				throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 			}
-			$url = 'https://www.transifex.com/api/2/' . ltrim($query, '/');
+			if(!empty($postData)) {
+				if(!@curl_setopt($hCurl, CURLOPT_POST, true)) {
+					throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
+				}
+				if(!@curl_setopt($hCurl, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8'))) {
+					throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
+				}
+				if(!@curl_setopt($hCurl, CURLOPT_POSTFIELDS, json_encode($postData))) {
+					throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
+				}
+			}
+			$url = $this->host . '/api/2/' . ltrim($query, '/');
 			if(!@curl_setopt($hCurl, CURLOPT_URL, $url)) {
 				throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 			}
@@ -128,7 +146,6 @@ class Transifexer {
 			case 404:
 				throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
 			default:
-				print_r($response);
 				throw TransifexerException::getByCode(TransifexerException::UNEXPECTED_TRANSFER_ERROR, 'Error ' . $info['http_code'] . ' in response from Transifex');
 		}
 		if($decodeJSON) {
@@ -143,7 +160,6 @@ class Transifexer {
 		}
 		return $response;
 	}
-
 	/** List all the Transifex projects.
 	* @return array[array] Returns a list of arrays, each one with these keys:<ul>
 	*	<li>string <b>name</b> The project name</li>
@@ -295,6 +311,118 @@ class Transifexer {
 		}
 		return $this->query($query);
 	}
+	/** Creates a new resource.
+	* @param string $projectSlug The Transifex project slug.
+	* @param array $data The data of the new resource. It's an array with these keys:<ul>
+	*	<li>string <b>slug</b> [required] The new resource slug.</li>
+	*	<li>string <b>name</b> [required] The new resource name.</li>
+	*	<li>string <b>content</b> [required] The new resource content.</li>
+	*	<li>string <b>i18n_type</b> [required] The type of the new resource ('PO', 'QT', 'INI', ...).</li>
+	*	<li>bool <b>accept_translations</b> [optional] Does the resource accept translations?</li>
+	*	<li>string <b>category</b> [optional] The category of the new resource.</li>
+	* </ul>
+	* @return array Returns the same result as of getResourceInfo() with detaled informations.
+	* @throws TransifexerException Throws a TransifexerException in case of errors.
+	*/
+	public function createResource($projectSlug, $data) {
+		if(!preg_match('#^[\w\-]+$#', $projectSlug)) {
+			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+		}
+		if(!preg_match('#^[\w\-]+$#', @$data['slug'])) {
+			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+		}
+		if(isset($data['accept_translations'])) {
+			$data['accept_translations'] = $data['accept_translations'] ? '1' : '0';
+		}
+		$initialException = null;
+		try {
+			$this->query("project/$projectSlug/resources/", $data);
+		}
+		catch(TransifexerException $x) {
+			if(($x->getCode() == TransifexerException::UNEXPECTED_TRANSFER_ERROR) && (strpos($x->getMessage(), 'Error 500 in response from Transifex') === 0)) {
+				$initialException = $x;
+			}
+			else {
+				throw $x;
+			}
+		}
+		try {
+			return $this->getResourceInfo($projectSlug, $data['slug'], true);
+		}
+		catch(Exception $x) {
+			throw $initialException ? $initialException : $x;
+		}
+	}
+	/** Pulls data from Transifex into a local folder (using the tx command).
+	* @param string $projectSlug The Transifex project slug.
+	* @param string $folder The local folder where to store data.
+	* @param bool $reset [default: false] Force reload of all the translations (useful to clean potential dirty local .po files).
+	* @param string $resourceSlug [default: ''] If specified, only this resource will be pulled.
+	* @param bool $onlySource [default: false] Download only source .pot file.
+	* @throws Exception Throws an Exception in case of errors.
+	*/
+	public function pull($projectSlug, $folder, $reset = false, $resourceSlug = '', $onlySource = false) {
+		if(!is_dir($folder)) {
+			@mkdir($folder, 0777, true);
+			if(!is_dir($folder)) {
+				throw new Exception("Unable to create the folder '" . $folder . "'");
+			}
+		}
+		else {
+			if($reset) {
+				Enviro::deleteFolder($folder . DIRECTORY_SEPARATOR . '.tx');
+				Enviro::deleteFolder($folder . DIRECTORY_SEPARATOR . 'translations');
+			}
+		}
+		$prevDir = getcwd();
+		chdir($folder);
+		try {
+			if(!is_dir('.tx')) {
+				Enviro::write("Initializing Transifex... ");
+				Enviro::run('tx', 'init --host=' . escapeshellarg($this->host) . ' --user=' . escapeshellarg($this->username) . ' --pass=' . escapeshellarg($this->password));
+				Enviro::write("done.\n");
+			}
+			Enviro::write("Updating Transifex resource list for $projectSlug... ");
+			Enviro::run('tx', 'set --auto-remote ' . escapeshellarg($this->host . '/projects/p/' . $projectSlug . '/'));
+			Enviro::write("done.\n");
+			Enviro::write("Fetching Transifex resources... ");
+			$args = array();
+			$args[] = 'pull';
+			$args[] = $onlySource ? ' --source' : ' --all';
+			if(strlen($resourceSlug)) {
+				$args[] = '--resource=' . escapeshellarg("$projectSlug.$resourceSlug");
+			}
+			$args[] = '--mode=developer';
+			Enviro::run('tx', $args);
+			Enviro::write("done.\n");
+		}
+		catch(Exception $x) {
+			@chdir($prevDir);
+			throw $x;
+		}
+		@chdir($prevDir);
+	}
+	public function push($folder, $projectSlug = '', $resourceSlug = '') {
+		if(!is_dir(Enviro::mergePath($folder, '.tx'))) {
+			throw new Exception("'$folder' is not a valid Transifex folder.");
+		}
+		$prevDir = getcwd();
+		chdir($folder);
+		try {
+			$args = array();
+			$args[] = 'push';
+			$args[] = '--translations';
+			if(strlen($projectSlug) && strlen($resourceSlug)) {
+				$args[] = '--resource=' . escapeshellarg("$projectSlug.$resourceSlug");
+			}
+			Enviro::run('tx', $args);
+		}
+		catch(Exception $x) {
+			@chdir($prevDir);
+			throw $x;
+		}
+		@chdir($prevDir);
+	}
 }
 
 /** An exception related to Transifexer */
@@ -390,5 +518,192 @@ class TransifexerException extends Exception {
 			}
 		}
 		return "Unknown error: $code";
+	}
+}
+
+/** A local translation file (.po and .mo) from Transifex. */
+class TransifexerTranslation {
+	/** The project slug.
+	* @var string
+	*/
+	public $projectSlug;
+	/** The resource slug.
+	* @var string
+	*/
+	public $resourceSlug;
+	/** The language code.
+	* @var string
+	*/
+	public $languageCode;
+	/** Absolute location of the .po file (in the Transifex folder).
+	* @var string
+	*/
+	public $poPath;
+	/** Absolute location of the .mo file (in the Transifex folder).
+	* @var string
+	*/
+	public $moPath;
+	/** Initializes the instance.
+	* @param string $poPath Absolute path to the po file.
+	*/
+	private function __construct($poPath) {
+		$rxDirSep = preg_quote(DIRECTORY_SEPARATOR, '/');
+		if(!preg_match('/(^|' . $rxDirSep . ')' . '([^' . $rxDirSep . ']+)' . '\\.([^' . $rxDirSep . ']+)' . $rxDirSep . '(([^' . $rxDirSep . ']+)\\.po)$/i', $poPath, $m)) {
+			throw new Exception("Invalid relative po file name: '$poAbsolute'");
+		}
+		$this->projectSlug = $m[2];
+		$this->resourceSlug = $m[3];
+		$this->languageCode = $m[5];
+		$this->poPath = $poPath;
+		$this->moPath = preg_replace('/\\.po$/i', '.mo', $poPath);
+	}
+	/** Retrieves a string describing this instance.
+	* @return string
+	*/
+	public function getName() {
+		return "{$this->projectSlug}.{$this->resourceSlug}.{$this->languageCode}";
+	}
+	/** Compiles the .po file into the .mo file (and retrieve stats).
+	* @return array Returns an informational array about the translated strings; the array keys are<ul>
+	*	<li>int <b>translated</b> The number of translated strings</li>
+	*	<li>int <b>untranslated</b> The number of untranslated strings</li>
+	*	<li>int <b>fuzzy</b> The number of fuzzy strings</li>
+	*	<li>int <b>total</b> The number of total strings</li>
+	*	<li>int <b>percentual</b> The percentual of translation (from 0 to 100)</li>
+	* </ul>
+	* @throws Exception Throws an Exception in case of errors.
+	*/
+	public function compile() {
+		Enviro::run('msgfmt', '--statistics --check-format --check-header --check-domain --output-file=' . escapeshellarg($this->moPath) . ' ' . escapeshellarg($this->poPath), 0, $outputLines);
+		$stats = null;
+		foreach($outputLines as $outputLine) {
+			if(preg_match('/(\\d+) translated messages/', $outputLine, $match)) {
+				$stats = array(
+					'translated' => intval($match[1]),
+					'untranslated' => 0,
+					'fuzzy' => 0
+				);
+				if(preg_match('/(\\d+) untranslated messages/', $outputLine, $match)) {
+					$stats['untranslated'] = intval($match[1]);
+				}
+				if(preg_match('/(\\d+) fuzzy translations/', $outputLine, $match)) {
+					$stats['fuzzy'] = intval($match[1]);
+				}
+				$stats['total'] = $stats['translated'] + $stats['untranslated'] + $stats['fuzzy'];
+				$stats['percentual'] = ($stats['translated'] == $stats['total']) ? 100 : ($stats['total'] ? floor($stats['translated'] * 100 / $stats['total']) : 0);
+				break;
+			}
+		}
+		if(!$stats) {
+			throw new Exception("Unable to parse statistics from the output\n" . implode("\n", $outputLines));
+		}
+		return $stats;
+	}
+	public static function getFilePath($folder, $projectSlug, $resourceSlug, $languageCode) {
+		return Enviro::mergePath($folder, 'translations', "$projectSlug.$resourceSlug", "$languageCode.po");
+	}
+	/** Returns all the translations found in a local Transifex folder.
+	* @param string $folder The local Transifex folder.
+	* @return TransifexerTranslation[]
+	* @throws Exception Throws an Exception in case of errors.
+	*/
+	public static function getAll($folder) {
+		if(!is_dir($folder)) {
+			throw new Exception("The folder folder '$folder' does not exist.");
+		}
+		$subFolders = array();
+		$translations = array();
+		$class = __CLASS__;
+		if(!($hDir = @opendir($folder))) {
+			throw new Exception("Unable to open folder '$folder'.");
+		}
+		try {
+			while(($item = @readdir($hDir)) !== false) {
+				switch($item) {
+					case '.':
+					case '..':
+						break;
+					default:
+						$fullItem = Enviro::mergePath($folder, $item);
+						if(is_dir($fullItem)) {
+							$subFolders[] = $fullItem;
+						}
+						elseif(preg_match('/.\\.po$/i', $item)) {
+							$translations[] = new $class($fullItem);
+						}
+						break;
+				}
+			}
+			@closedir($hDir);
+		}
+		catch(Exception $x) {
+			@closedir($hDir);
+			throw $x;
+		}
+		foreach($subFolders as $subFolder) {
+			$translations = array_merge($translations, self::getAll($subFolder));
+		}
+		usort($translations, array($class, 'sort'));
+		return $translations;
+	}
+	/** Translations sorter
+	* @param TransifexerTranslation $a
+	* @param TransifexerTranslation $b
+	* @return int
+	*/
+	private static function sort($a, $b) {
+		if(!($i = strcasecmp($a->projectSlug, $b->projectSlug))) {
+			if(!($i = strcasecmp($a->resourceSlug, $b->resourceSlug))) {
+				$i = strcasecmp($a->languageCode, $b->languageCode);
+			}
+		}
+		return $i;
+	}
+	/** Checks if the instance .po file and another .po file are different.
+	* @return boolean
+	* @throws Exception Throws an Exception in case of errors.
+	*/
+	public function detectChanges($poPath) {
+		if(!is_file($poPath)) {
+			return true;
+		}
+		$thisData = @file_get_contents($this->poPath);
+		if($thisData === false) {
+			throw new Exception("Error reading file '{$this->poPath}'.");
+		}
+		$thatData = @file_get_contents($poPath);
+		if($thatData === false) {
+			throw new Exception("Error reading file '$poPath'.");
+		}
+		if(strcmp($thisData, $thatData) === 0) {
+			return false;
+		}
+		$thisData = preg_replace('/(POT-Creation-Date|PO-Revision-Date): [0-9:\\-+ ]+/', '', $thisData);
+		$thatData = preg_replace('/(POT-Creation-Date|PO-Revision-Date): [0-9:\\-+ ]+/', '', $thatData);
+		if(strcmp($thisData, $thatData) === 0) {
+			return false;
+		}
+		return true;
+	}
+	/** Copy the .po and .mo files to another folder.
+	* @param string $folder The destination folder.
+	* @param string $baseName The base name of the destination files (eg without .po/.mo extension).
+	* @throws Exception Throws an Exception in case of errors.
+	*/
+	public function copyTo($folder, $baseName) {
+		if(!@is_dir($folder)) {
+			@mkdir($folder, $folder, true);
+			if(!@is_dir($destFolder)) {
+				throw new Exception("Unable to create the folder '$folder'");
+			}
+		}
+		$dest = Enviro::mergePath($folder, $baseName . '.po');
+		if(!@copy($this->poPath, $dest)) {
+			throw new Exception("Error copying from\n{$this->poPath}\nto\n$dest");
+		}
+		$dest = Enviro::mergePath($folder, $baseName . '.mo');
+		if(!@copy($this->moPath, $dest)) {
+			throw new Exception("Error copying from\n{$this->moPath}\nto\n$dest");
+		}
 	}
 }

@@ -4,8 +4,8 @@
 /** The Transifex user name.
 * @var string
 */
-define('TRANSIFEX_USERNAME', 'The Transifex username');
+define('C5TT_TRANSIFEX_USERNAME', 'The Transifex username');
 /** The Transifex password.
 * @var string
 */
-define('TRANSIFEX_PASSWORD', 'The Transifex password');
+define('C5TT_TRANSIFEX_PASSWORD', 'The Transifex password');
