@@ -86,13 +86,6 @@ if(!defined('C5TT_GITHUB_LANGCOPY_BRANCH')) {
 	define('C5TT_GITHUB_LANGCOPY_BRANCH', 'master');
 }
 
-if(!defined('C5TT_GITHUB_LANGCOPY_USERNAME')) {
-	/** The username for the GitHub repository that contains the .po/.mo files taken from Transifex.
-	* @var string
-	*/
-	define('C5TT_GITHUB_LANGCOPY_USERNAME', 'mlocati');
-}
-
 if(!defined('C5TT_GITHUB_TOOLS_OWNER')) {
 	/** GitHub user owning the repository with the tools scripts.
 	* @var string

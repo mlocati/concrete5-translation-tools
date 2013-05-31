@@ -22,24 +22,25 @@ class Gitter {
 	* @var string
 	*/
 	private $localPath;
-	/** User name.
+	/** Will we write to this repository?
 	* @var string
 	*/
-	private $username;
+	private $writeEnabled;
 	/** Initializes the instance.
 	* @param string $host Git host.
 	* @param string $owner Git repository owner.
 	* @param string $repository Git repository.
 	* @param string $branch Git repository branch.
 	* @param string $localPath Local repository path.
+	* @param bool $writeEnabled [default: false] Enable writing to this repository?
 	*/
-	public function __construct($host, $owner, $repository, $branch, $localPath, $username = '') {
+	public function __construct($host, $owner, $repository, $branch, $localPath, $writeEnabled = false) {
 		$this->host = trim($host, '/');
 		$this->owner = $owner;
 		$this->repository = $repository;
 		$this->branch = $branch;
 		$this->localPath = rtrim(str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $localPath), DIRECTORY_SEPARATOR);
-		$this->username = is_string($username) ? $username : '';
+		$this->writeEnabled = $writeEnabled ? true : false;
 	}
 	/** Is the local folder existing and with a git repository?
 	* @return boolean
@@ -59,8 +60,8 @@ class Gitter {
 		}
 	}
 	private function getRemotePath() {
-		if(strlen($this->username)) {
-			return "git@{$this->host}:{$this->username}/{$this->repository}.git";
+		if($this->writeEnabled) {
+			return "git@{$this->host}:{$this->owner}/{$this->repository}.git";
 		}
 		else {
 			return "git://{$this->host}/{$this->owner}/{$this->repository}.git";

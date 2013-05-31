@@ -31,9 +31,6 @@
 // The branch of the GitHub repository that contains the .po/.mo files taken from Transifex.
 //define('C5TT_GITHUB_LANGCOPY_BRANCH', 'master');
 
-// The username for the GitHub repository that contains the .po/.mo files taken from Transifex.
-//define('C5TT_GITHUB_LANGCOPY_USERNAME', 'mlocati');
-
 // GitHub user owning the repository with the tools scripts.
 //define('C5TT_GITHUB_TOOLS_OWNER', 'mlocati');
 

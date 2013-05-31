@@ -31,7 +31,7 @@ foreach($translations as $translationIndex => $translation) {
 }
 
 // Let's pull the latest branch version of the repository containing the translations
-$gitter = new Gitter('github.com', C5TT_GITHUB_LANGCOPY_OWNER, C5TT_GITHUB_LANGCOPY_REPOSITORY, C5TT_GITHUB_LANGCOPY_BRANCH, C5TT_GITHUB_LANGCOPY_WORKPATH, C5TT_GITHUB_LANGCOPY_USERNAME);
+$gitter = new Gitter('github.com', C5TT_GITHUB_LANGCOPY_OWNER, C5TT_GITHUB_LANGCOPY_REPOSITORY, C5TT_GITHUB_LANGCOPY_BRANCH, C5TT_GITHUB_LANGCOPY_WORKPATH, true);
 $gitter->pullOrInitialize();
 
 // Let's check if some translations has changed: if so let's copy the .po and .mo files to the repository.
