@@ -691,8 +691,8 @@ class TransifexerTranslation {
 	*/
 	public function copyTo($folder, $baseName) {
 		if(!@is_dir($folder)) {
-			@mkdir($folder, $folder, true);
-			if(!@is_dir($destFolder)) {
+			@mkdir($folder, true);
+			if(!@is_dir($folder)) {
 				throw new Exception("Unable to create the folder '$folder'");
 			}
 		}
