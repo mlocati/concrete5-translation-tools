@@ -11,7 +11,7 @@
 //define('C5TT_TRANSIFEX_HOST', 'https://www.transifex.com');
 
 // The Transifex project name.
-//define('C5TT_TRANSIFEX_PROJECT', 'mlocati-test');
+//define('C5TT_TRANSIFEX_PROJECT', 'concrete5');
 
 // GitHub user owning the repository with the concrete5 core.
 //define('C5TT_GITHUB_CORE_OWNER', 'concrete5');
@@ -23,10 +23,10 @@
 //define('C5TT_CORE_GITHUB_CORE_BRANCH', 'master');
 
 // GitHub user owning the repository with the .po/.mo files taken from Transifex.
-//define('C5TT_GITHUB_LANGCOPY_OWNER', 'mlocati');
+//define('C5TT_GITHUB_LANGCOPY_OWNER', 'concrete5');
 
 // The GitHub repository name that contains the .po/.mo files taken from Transifex.
-//define('C5TT_GITHUB_LANGCOPY_REPOSITORY', 'mlocati-potest');
+//define('C5TT_GITHUB_LANGCOPY_REPOSITORY', 'concrete5-translations');
 
 // The branch of the GitHub repository that contains the .po/.mo files taken from Transifex.
 //define('C5TT_GITHUB_LANGCOPY_BRANCH', 'master');
