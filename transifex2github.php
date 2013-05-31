@@ -55,7 +55,8 @@ if(!$someChanged) {
 }
 
 // Let's generate the statistics file
-Enviro::write("Creating statistics file...");
+$now = gmdate('c');
+Enviro::write("Creating current statistic files...");
 $resources = array();
 foreach($translations as $translationIndex => $translation) {
 	if(!array_key_exists($translation->resourceSlug, $resources)) {
@@ -65,6 +66,7 @@ foreach($translations as $translationIndex => $translation) {
 }
 $xDoc = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><stats></stats>');
 $xDoc->addAttribute('project', C5TT_TRANSIFEX_PROJECT);
+$xDoc->addAttribute('updated', $now);
 foreach($resources as $resourceSlug => $languages) {
 	$resourceNode = $xDoc->addChild('resource');
 	$resourceNode->addAttribute('name', $resourceSlug);
@@ -80,7 +82,7 @@ foreach($resources as $resourceSlug => $languages) {
 }
 $dom = dom_import_simplexml($xDoc);
 $dom->ownerDocument->formatOutput = true;
-$statsFile = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, 'stats.xml');
+$statsFile = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, 'stats-current.xml');
 if(!($hStats = @fopen($statsFile, 'wb'))) {
 	throw new Exception("Error opening '$statsFile' for writing.");
 }
@@ -88,6 +90,115 @@ fwrite($hStats, $dom->ownerDocument->saveXML());
 fclose($hStats);
 Enviro::write("done.\n");
 
+Enviro::write("Creating/updating historical statistic files...");
+$historyFile = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, 'stats-history.xml');
+$xDoc = null;
+if(is_file($historyFile)) {
+	$xDoc = @simplexml_load_string(@preg_replace('/>\s+/', '>', @file_get_contents($historyFile)));
+	if($xDoc) {
+		if($xDoc->getName() != 'projects') {
+			$xDoc = null;
+		}
+	}
+}
+if(!$xDoc) {
+	$xDoc = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><projects></projects>');
+}
+$xProject = null;
+foreach($xDoc->children() as $x) {
+	if(($x->getName() == 'project') && isset($x['name']) && (C5TT_TRANSIFEX_PROJECT === (string)$x['name'])) {
+		$xProject = $x;
+		break;
+	}
+}
+if(!$xProject) {
+	$xProject = $xDoc->addChild('project');
+	$xProject->addAttribute('name', C5TT_TRANSIFEX_PROJECT);
+}
+$latest = array();
+foreach($xProject->xpath('./stats') as $xStats) {
+	if(isset($xStats['timestamp'])) {
+		$timestamp = (string)$xStats['timestamp'];
+		foreach($xStats->xpath('./resource') as $xResource) {
+			if(isset($xResource['name'])) {
+				$resourceSlug = (string)$xResource['name'];
+				foreach($xResource->xpath('./language') as $xLanguage) {
+					if(isset($xLanguage['name'])) {
+						$languageCode = (string)$xLanguage['name'];
+						if(!isset($latest[$resourceSlug])) {
+							$latest[$resourceSlug] = array();
+						}
+						if((!isset($latest[$resourceSlug][$languageCode])) || ($latest[$resourceSlug][$languageCode]['timestamp'] < $timestamp)) {
+							$latest[$resourceSlug][$languageCode] = array(
+								'timestamp' => $timestamp,
+								'state' => array(
+									'translated' => @intval((string)@$xLanguage['translated']),
+									'untranslated' => @intval((string)@$xLanguage['untranslated']),
+									'fuzzy' => @intval((string)@$xLanguage['fuzzy']),
+									'total' => @intval((string)@$xLanguage['total']),
+									'percentual' => @intval((string)@$xLanguage['percentual'])
+								)
+							);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+$someWritten = false;
+$xStats = null;
+foreach($resources as $resourceSlug => $languages) {
+	$xResource = null;
+	foreach($languages as $languageCode => $stats) {
+		$write = true;
+		if(isset($latest[$resourceSlug])) {
+			if(isset($latest[$resourceSlug][$languageCode])) {
+				$prev = $latest[$resourceSlug][$languageCode]['state'];
+				$write = false;
+				foreach($stats as $name => $num) {
+					if($prev[$name] != $num) {
+						$write = true;
+						break;
+					}
+				}
+			}
+		}
+		if($write) {
+			$someWritten = true;
+			if(!$xStats) {
+				$xStats = $xProject->addChild('stats');
+				$xStats->addAttribute('timestamp', $now);
+			}
+			if(!$xResource) {
+				$xResource = $xStats->addChild('resource');
+				$xResource->addAttribute('name', $resourceSlug);
+			}
+			$xLanguage = $xResource->addChild('language');
+			$xLanguage->addAttribute('name', $languageCode);
+			$xLanguage->addAttribute('translated', $stats['translated']);
+			$xLanguage->addAttribute('untranslated', $stats['untranslated']);
+			$xLanguage->addAttribute('fuzzy', $stats['fuzzy']);
+			$xLanguage->addAttribute('total', $stats['total']);
+			$xLanguage->addAttribute('percentual', $stats['percentual']);
+		}
+	}
+}
+if($someWritten) {
+	$dom = dom_import_simplexml($xDoc);
+	$dom->ownerDocument->formatOutput = true;
+	if(!($hStats = @fopen($historyFile, 'wb'))) {
+		throw new Exception("Error opening '$historyFile' for writing.");
+	}
+	fwrite($hStats, $dom->ownerDocument->saveXML());
+	fclose($hStats);
+	Enviro::write("done (updated).\n");
+}
+else {
+	Enviro::write("done (no change).\n");
+}
+
 // Let's commit and push the repository.
 $gitter->commit('Transifex update');
 $gitter->push();
+
