@@ -1,9 +1,19 @@
 <?php
 
+/** A temporary folder manager. */
 class TempFolder {
+	/** The full path of the temporary folder.
+	* @var string
+	*/
 	private $name;
+	/** An open handle to a lock file (just to avoid deleting the folder while the instance exists.
+	* @var resource
+	*/
 	private $hLock;
-	function __construct() {
+	/** Initializes the instance (creates a new temporary folder).
+	* @throws Exception Throws an Exception in case of errors.
+	*/
+	public function __construct() {
 		$this->name = '';
 		$this->hLock = null;
 		$eligible = array();
@@ -39,6 +49,7 @@ class TempFolder {
 		$this->name = $folder;
 		$this->hLock = @fopen(Enviro::mergePath($this->name, '.lock'), 'wb');
 	}
+	/** Destroys this instance (and deletes its temporary folder). */
 	function __destruct() {
 		if($this->hLock) {
 			@fflush($this->hLock);
@@ -50,9 +61,17 @@ class TempFolder {
 			$this->name = '';
 		}
 	}
+	/** Gets the full path to the temporary folder.
+	* @return string
+	*/
 	public function getName() {
 		return $this->name;
 	}
+	/** Gets the name (full path) of a new file inside the temporary folder.
+	* @param bool $createEmpty [default: false] Should the function create an empty file?
+	* @return string
+	* @throws Exception Throws an Exception if the creation of the temporary file fails.
+	 */
 	public function getNewFile($createEmpty = false) {
 		for($i = 0; ; $i++) {
 			$filename = Enviro::mergePath($this->name, "tmp-$i");
