@@ -50,9 +50,9 @@ class Gitter {
 	/** Ensures that the local repository is initialized and that it matches the remote repository.
 	* @throws Exception Throws an Exception in case of errors.
 	*/
-	public function reset() {
+	public function pullOrInitialize() {
 		if($this->localFolderIsGit()) {
-			$this->update();
+			$this->pull();
 		}
 		else {
 			$this->initialize();
@@ -96,7 +96,7 @@ class Gitter {
 	/** Ensures that the local folder contains the remote data.
 	* @throws Exception Throws an Exception in case of errors.
 	*/
-	public function update() {
+	public function pull() {
 		if(!is_dir(Enviro::mergePath($this->localPath, '.git'))) {
 			throw new Exception("The folder '{$this->localPath}' is not a git repository.");
 		}

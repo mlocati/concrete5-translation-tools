@@ -27,7 +27,7 @@ foreach($translations as $translationIndex => $translation) {
 }
 
 $gitter = new Gitter('github.com', C5TT_GITHUB_LANGCOPY_OWNER, C5TT_GITHUB_LANGCOPY_REPOSITORY, C5TT_GITHUB_LANGCOPY_BRANCH, C5TT_GITHUB_LANGCOPY_WORKPATH, C5TT_GITHUB_LANGCOPY_USERNAME);
-$gitter->reset();
+$gitter->pullOrInitialize();
 
 $someChanged = false;
 foreach($translations as $translation) {

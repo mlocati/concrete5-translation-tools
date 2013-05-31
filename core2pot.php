@@ -5,7 +5,7 @@ require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'gitter.php');
 
 // Let's pull the latest concrete5 core code from GitHub.
 $gitter = new Gitter('github.com', C5TT_GITHUB_CORE_OWNER, C5TT_GITHUB_CORE_REPOSITORY, C5TT_GITHUB_CORE_BRANCH, C5TT_GITHUB_CORE_WORKPATH);
-$gitter->reset();
+$gitter->pullOrInitialize();
 $webRoot = Enviro::mergePath(C5TT_GITHUB_CORE_WORKPATH, 'web');
 if(!is_dir($webRoot)) {
 	throw new Exception("Unable to find the folder '$webRoot'");
