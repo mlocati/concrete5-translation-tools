@@ -46,7 +46,7 @@ class Enviro {
 			}
 		}
 		else {
-			$hereCommand = self::mergePath(dirname(__FILE__), $command . '.exe');
+			$hereCommand = self::mergePath(dirname(__FILE__), $command);
 			if(is_file($hereCommand)) {
 				$command = $hereCommand;
 			}
