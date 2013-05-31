@@ -370,8 +370,7 @@ class Transifexer {
 		}
 		else {
 			if($reset) {
-				Enviro::deleteFolder($folder . DIRECTORY_SEPARATOR . '.tx');
-				Enviro::deleteFolder($folder . DIRECTORY_SEPARATOR . 'translations');
+				Enviro::deleteFolder($folder, true);
 			}
 		}
 		$prevDir = getcwd();

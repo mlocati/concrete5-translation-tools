@@ -93,9 +93,10 @@ class Enviro {
 	}
 	/** Deletes a folder, if it exists.
 	* @param string $folder The folder to delete.
+	* @param bool $justEmptyIt [default: false] Set to true to just empty the folder, false to delete it.
 	* @throws Exception Throws an Exception if $folder is not a deletable folder.
 	*/
-	public static function deleteFolder($folder) {
+	public static function deleteFolder($folder, $justEmptyIt = false) {
 		if(is_file($folder)) {
 			throw new Exception("'$folder' is a file, not a folder");
 		}
@@ -142,11 +143,13 @@ class Enviro {
 		}
 		@closedir($hDir);
 		foreach($subFolders as $subFolder) {
-			self::deleteFolder($subFolder);
+			self::deleteFolder($subFolder, false);
 		}
-		if(!@rmdir($folder)) {
-			throw new Exception("rmdir() failed on '$folder'");
+		if(!$justEmptyIt) {
+			if(!@rmdir($folder)) {
+				throw new Exception("rmdir() failed on '$folder'");
+			}
+			@clearstatcache();
 		}
-		@clearstatcache();
 	}
 }
