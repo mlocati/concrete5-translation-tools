@@ -42,7 +42,7 @@ else {
 	}
 }
 
-// Let's pull all the Transifex
+// Let's pull all the Transifex data
 $transifexer->pull(C5TT_TRANSIFEX_PROJECT, C5TT_TRANSIFEX_WORKPATH, true);
 
 // Let's determine the .po files that must be copied from the source resource to the destination resource
