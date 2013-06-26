@@ -42,4 +42,4 @@ if(!@rename($srcFile, C5TT_POT_PATH_FOR_TRANSIFEX)) {
 Enviro::write("done.\n");
 
 // All done
-Enviro::write("POT file generated successfully: " . C5TT_POT_PATH_FOR_TRANSIFEX);
+Enviro::write("POT file generated successfully:\n" . C5TT_POT_PATH_FOR_TRANSIFEX . "\n");
