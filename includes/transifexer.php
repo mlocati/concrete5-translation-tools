@@ -563,6 +563,7 @@ class TransifexerTranslation {
 		return "{$this->projectSlug}.{$this->resourceSlug}.{$this->languageCode}";
 	}
 	/** Compiles the .po file into the .mo file (and retrieve stats).
+	* @param bool $checkFormat [default: false] Should we check the format?
 	* @return array Returns an informational array about the translated strings; the array keys are<ul>
 	*	<li>int <b>translated</b> The number of translated strings</li>
 	*	<li>int <b>untranslated</b> The number of untranslated strings</li>
@@ -572,8 +573,8 @@ class TransifexerTranslation {
 	* </ul>
 	* @throws Exception Throws an Exception in case of errors.
 	*/
-	public function compile() {
-		Enviro::run('msgfmt', '--statistics --check-format --check-header --check-domain --output-file=' . escapeshellarg($this->moPath) . ' ' . escapeshellarg($this->poPath), 0, $outputLines);
+	public function compile($checkFormat = false) {
+		Enviro::run('msgfmt', '--statistics ' . ($checkFormat ? ' --check-format' : '') . ' --check-header --check-domain --output-file=' . escapeshellarg($this->moPath) . ' ' . escapeshellarg($this->poPath), 0, $outputLines);
 		$stats = null;
 		foreach($outputLines as $outputLine) {
 			if(preg_match('/(\\d+) translated messages/', $outputLine, $match)) {
