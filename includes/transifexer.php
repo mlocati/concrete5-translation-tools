@@ -692,7 +692,7 @@ class TransifexerTranslation {
 	*/
 	public function copyTo($folder, $baseName) {
 		if(!@is_dir($folder)) {
-			@mkdir($folder, true);
+			@mkdir($folder, 0777, true);
 			if(!@is_dir($folder)) {
 				throw new Exception("Unable to create the folder '$folder'");
 			}
