@@ -1,5 +1,6 @@
 /.settings
 /configuration/credentials.php
+/configuration/customize.php
 /includes/txclib/*.pyc
 /work
 /.buildpath
