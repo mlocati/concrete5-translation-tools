@@ -14,6 +14,45 @@ if((!is_string($ddtz)) || (!strlen($ddtz))) {
 set_error_handler('errorCatcher');
 set_exception_handler('exceptionCatcher');
 
+/** Ends the execution because of the specified error.
+* @param string $description The error description.
+* @param int|null $code The error code.
+* @param string $file The file where the error occurred.
+* @param int|null $line The line where the error occurred.
+* @param string $trace The call stack to the error location.
+ */
+function stopForError($description, $code = null, $file = '', $line = null, $trace = '') {
+	$text = '';
+	$text .= "$description\n";
+	if(!empty($code)) {
+		$text .= "CODE : $code\n";
+	}
+	if(strlen($file)) {
+		$text .= "FILE : $file\n";
+	}
+	if(!empty($line)) {
+		$text .= "LINE : $line\n";
+	}
+	if(strlen($trace)) {
+		$text .= "TRACE:\n$trace\n";
+	}
+	$stderr = fopen('php://stderr', 'wb');
+	fwrite($stderr, $text);
+	fflush($stderr);
+	fclose($stderr);
+	if(defined('C5TT_NOTIFYERRORS_TO') && strlen(C5TT_NOTIFYERRORS_TO)) {
+		$headers = array();
+		$headers[] = 'From: ' . C5TT_EMAILSENDERADDRESS;
+		$subject = 'concrete5 translation tools error';
+		global $argv;
+		if(isset($argv) && is_array($argv) && count($argv)) {
+			$subject .= " ({$argv[0]})";
+		}
+		mail(C5TT_NOTIFYERRORS_TO, $subject, $text, implode("\r\n", $headers));
+	}
+	die(empty($code) ? 1 : $code);
+}
+
 /** Catches a php error/warning and raises an exception.
 * @param int $errNo The level of the error raised.
 * @param string $errstr the error message.
@@ -22,29 +61,14 @@ set_exception_handler('exceptionCatcher');
 * @throws Exception Throws an Exception when an error is detected during the script execution.
 */
 function errorCatcher($errno, $errstr, $errfile, $errline) {
-	$stderr = fopen('php://stderr', 'wb');
-	fwrite($stderr, "ERROR: " . $errstr . "\n");
-	fwrite($stderr, "CODE: " . $errno . "\n");
-	fwrite($stderr, "FILE: " . $errfile . "\n");
-	fwrite($stderr, "LINE: " . $errline . "\n");
-	fflush($stderr);
-	fclose($stderr);
-	die($errno ? $errno : 1);
+	stopForError($errstr, $errno, $errfile, $errline);
 }
 
-/** Catches a php Exception and die.
+/** Catches a php Exception and dies.
 * @param Exception $exception
 */
 function exceptionCatcher($exception) {
-	$stderr = fopen('php://stderr', 'wb');
-	fwrite($stderr, "EXCEPTION: " . $exception->getMessage() . "\n");
-	fwrite($stderr, "CODE: " . $exception->getCode() . "\n");
-	fwrite($stderr, "FILE: " . $exception->getFile() . "\n");
-	fwrite($stderr, "LINE: " . $exception->getLine() . "\n");
-	fwrite($stderr, "TRACE:\n" . $exception->getTraceAsString() . "\n");
-	fflush($stderr);
-	fclose($stderr);
-	die($exception->getCode() ? $exception->getCode() : 1);
+	stopForError($exception->getMessage(), $exception->getCode(), $exception->getFile(), $exception->getLine(), $exception->getTraceAsString());
 }
 
 // Let's include

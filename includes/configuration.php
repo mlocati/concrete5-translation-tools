@@ -114,6 +114,20 @@ if(!defined('C5TT_POT_PATH_FOR_TRANSIFEX')) {
 	define('C5TT_POT_PATH_FOR_TRANSIFEX', '/var/www/website/core-dev.pot');
 }
 
+if(!defined('C5TT_EMAILSENDERADDRESS')) {
+	/** The sender email address of outgoing emails.
+	 * @var string
+	 */
+	define('C5TT_EMAILSENDERADDRESS', 'c5tt@localhost');
+}
+
+if(!defined('C5TT_NOTIFYERRORS_TO')) {
+	/** A comma-separated list of email addresses of the recipients of exception notifications.
+	 * @var string
+	 */
+	define('C5TT_NOTIFYERRORS_TO', '');
+}
+
 
 /** The local copy of the Transifex data.
 * @var string

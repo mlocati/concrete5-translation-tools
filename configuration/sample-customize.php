@@ -42,3 +42,9 @@
 
 // The location of the .pot file to generate (will be fetched by Transifex).
 //define('C5TT_POT_PATH_FOR_TRANSIFEX', '/var/www/website/core-dev.pot');
+
+// The sender email address of outgoing emails.
+//define('C5TT_EMAILSENDERADDRESS', 'c5tt@localhost');
+
+// A comma-separated list of email addresses of the recipients of exception notifications.
+//define('C5TT_NOTIFYERRORS_TO', 'user1@domain1.com, user2@domain2.com');
