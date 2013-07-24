@@ -41,7 +41,7 @@ if(!defined('C5TT_TRANSIFEX_PROJECT')) {
 	/** The Transifex project name.
 	* @var string
 	*/
-	define('C5TT_TRANSIFEX_PROJECT', 'mlocati-test');
+	define('C5TT_TRANSIFEX_PROJECT', 'concrete5');
 }
 
 if(!defined('C5TT_GITHUB_CORE_OWNER')) {
@@ -69,14 +69,14 @@ if(!defined('C5TT_GITHUB_LANGCOPY_OWNER')) {
 	/** GitHub user owning the repository with the .po/.mo files taken from Transifex.
 	* @var string
 	*/
-	define('C5TT_GITHUB_LANGCOPY_OWNER', 'mlocati');
+	define('C5TT_GITHUB_LANGCOPY_OWNER', 'concrete5');
 }
 
 if(!defined('C5TT_GITHUB_LANGCOPY_REPOSITORY')) {
 	/** The GitHub repository name that contains the .po/.mo files taken from Transifex.
 	* @var string
 	*/
-	define('C5TT_GITHUB_LANGCOPY_REPOSITORY', 'mlocati-potest');
+	define('C5TT_GITHUB_LANGCOPY_REPOSITORY', 'concrete5-translations');
 }
 
 if(!defined('C5TT_GITHUB_LANGCOPY_BRANCH')) {
