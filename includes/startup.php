@@ -13,6 +13,7 @@ if((!is_string($ddtz)) || (!strlen($ddtz))) {
 @ini_set('log_errors', false);
 set_error_handler('errorCatcher');
 set_exception_handler('exceptionCatcher');
+register_shutdown_function('executionDone');
 
 /** Ends the execution because of the specified error.
 * @param string $description The error description.
@@ -69,6 +70,17 @@ function errorCatcher($errno, $errstr, $errfile, $errline) {
 */
 function exceptionCatcher($exception) {
 	stopForError($exception->getMessage(), $exception->getCode(), $exception->getFile(), $exception->getLine(), $exception->getTraceAsString());
+}
+
+/** Shutdown function that catches errors not intercepted by errorCatcher (for instance, a call to an undefined function). */
+function executionDone() {
+	if($err = @error_get_last()) {
+		switch($err['type']) {
+			default:
+				stopForError($err['message'], $err['type'], $err['file'], $err['line']);
+				break;
+		}
+	}
 }
 
 // Let's include
