@@ -35,7 +35,8 @@ $gitter = new Gitter('github.com', C5TT_GITHUB_LANGCOPY_OWNER, C5TT_GITHUB_LANGC
 $gitter->pullOrInitialize();
 
 // Let's check if some translations has changed: if so let's copy the .po and .mo files to the repository.
-$someChanged = false;
+$changedTranslations = array();
+$changedAllTranslations = true;
 foreach($translations as $translation) {
 	Enviro::write("Cheking changes for {$translation->getName()}... ");
 	$gitFolder = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, $translation->resourceSlug);
@@ -43,13 +44,14 @@ foreach($translations as $translation) {
 	if($translation->detectChanges($gitPo)) {
 		$translation->copyTo($gitFolder, $translation->languageCode);
 		Enviro::write("CHANGED!\n");
-		$someChanged = true;
+		$changedTranslations[] = $translation->languageCode;
 	}
 	else {
 		Enviro::write("unchanged.\n");
+		$changedAllTranslations = false;
 	}
 }
-if(!$someChanged) {
+if(count($changedTranslations) == 0) {
 	Enviro::write("No change detected: git untouched.\n");
 	die(0);
 }
@@ -199,6 +201,12 @@ else {
 }
 
 // Let's commit and push the repository.
-$gitter->commit('Transifex update');
+if($changedAllTranslations) {
+	$commitMessage = 'All languages updated';
+}
+else {
+	$commitMessage = 'Updated languages: ' . implode(', ', $changedTranslations);
+}
+$gitter->commit($commitMessage);
 $gitter->push();
 
