@@ -667,6 +667,7 @@ class TransifexerTranslation {
 		if(!is_file($poPath)) {
 			return true;
 		}
+		// Read files content
 		$thisData = @file_get_contents($this->poPath);
 		if($thisData === false) {
 			throw new Exception("Error reading file '{$this->poPath}'.");
@@ -675,11 +676,18 @@ class TransifexerTranslation {
 		if($thatData === false) {
 			throw new Exception("Error reading file '$poPath'.");
 		}
+		// Exactly the same contents?
 		if(strcmp($thisData, $thatData) === 0) {
 			return false;
 		}
+		// Contents not exactly equal
+		// Remove POT-Creation-Date / PO-Creation-Date from the header
 		$thisData = preg_replace('/(POT-Creation-Date|PO-Revision-Date): [0-9:\\-+ ]+/', '', $thisData);
 		$thatData = preg_replace('/(POT-Creation-Date|PO-Revision-Date): [0-9:\\-+ ]+/', '', $thatData);
+		// Remove location comments
+		$thisData = preg_replace('/^#: [^\r\n]+[\r\n]+/m', '', $thisData);
+		$thatData = preg_replace('/^#: [^\r\n]+[\r\n]+/m', '', $thatData);
+		// Simplified contents are equals?
 		if(strcmp($thisData, $thatData) === 0) {
 			return false;
 		}
