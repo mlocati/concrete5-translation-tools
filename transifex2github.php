@@ -264,6 +264,6 @@ if(count($removedTranslations) > 0) {
 		}
 		$commitNames[] = $removedTranslation['resource'] . '/' . $removedTranslation['language'];
 	}
-	$gitter->commit('Removed lanuages: ' . implode(', ', $commitNames));
+	$gitter->commit('Removed languages: ' . implode(', ', $commitNames));
 }
 $gitter->push();
