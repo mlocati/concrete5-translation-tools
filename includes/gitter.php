@@ -123,12 +123,13 @@ class Gitter {
 	* @throws Exception Throws an Exception in case of errors.
 	*/
 	public function commit($comment, $authors = '') {
-		$author = '';
+		$author = null;
 		if(is_string($authors) && strlen($authors = trim($authors))) {
 			$l = array();
 			foreach(explode('|', $authors) as $a) {
-				if(strlen($a = trim($a))) {
-					$l[] = $a;
+				$a = trim($a);
+				if(preg_match('/^(.+)[ \t]*<(.+)>$/', trim($a), $m)) {
+					$l[] = array('name' => trim($m[1]), 'email' => trim($m[2]));
 				}
 			}
 			switch(count($l)) {
@@ -146,10 +147,18 @@ class Gitter {
 		$prevDir = getcwd();
 		chdir($this->localPath);
 		try {
+			if($author) {
+				Enviro::run('git', 'config --local user.name "' . str_replace('"', "'", $author['name']) . '"');
+				Enviro::run('git', 'config --local user.email "' . str_replace('"', "'", $author['email']) . '"');
+			}
+			else {
+				Enviro::run('git', 'config --local --unset user.name');
+				Enviro::run('git', 'config --local --unset user.email');
+			}
 			Enviro::run('git', 'add --all');
 			$args = 'commit';
-			if(strlen($author)) {
-				$args .= ' --author="' . str_replace('"', "'", $author) . '"';
+			if($author) {
+				$args .= ' --author="' . str_replace('"', "'", "{$author['name']} <{$author['email']}>") . '"';
 			}
 			if(strlen($comment)) {
 				$args .= ' --message="' . str_replace('"', "'", $comment) . '"';
