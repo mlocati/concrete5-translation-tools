@@ -86,6 +86,14 @@ if(!defined('C5TT_GITHUB_LANGCOPY_BRANCH')) {
 	define('C5TT_GITHUB_LANGCOPY_BRANCH', 'master');
 }
 
+if(!defined('C5TT_GITHUB_LANGCOPY_AUTHORS')) {
+	/** A pipe-separated list of authors that'll taken randomly when committing.
+	* @var string
+	*/
+	define('C5TT_GITHUB_LANGCOPY_AUTHORS', '');
+}
+
+
 if(!defined('C5TT_GITHUB_TOOLS_OWNER')) {
 	/** GitHub user owning the repository with the tools scripts.
 	* @var string

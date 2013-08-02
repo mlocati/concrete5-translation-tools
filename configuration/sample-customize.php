@@ -31,6 +31,9 @@
 // The branch of the GitHub repository that contains the .po/.mo files taken from Transifex.
 //define('C5TT_GITHUB_LANGCOPY_BRANCH', 'master');
 
+/// A pipe-separated list of authors that'll taken randomly when committing.
+//define('C5TT_GITHUB_LANGCOPY_AUTHORS', 'User A <user.a@domain-a.com>|User B <user.b@domain-b.com>');
+
 // GitHub user owning the repository with the tools scripts.
 //define('C5TT_GITHUB_TOOLS_OWNER', 'mlocati');
 

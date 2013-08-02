@@ -119,15 +119,42 @@ class Gitter {
 	}
 	/** Commit everything.
 	* @param string $comment Commit comment.
+	* @param string $authors [default: ''] A pipe-separated list of authors that'll taken randomly when committing.
 	* @throws Exception Throws an Exception in case of errors.
 	*/
-	public function commit($comment) {
+	public function commit($comment, $authors = '') {
+		$author = '';
+		if(is_string($authors) && strlen($authors = trim($authors))) {
+			$l = array();
+			foreach(explode('|', $authors) as $a) {
+				if(strlen($a = trim($a))) {
+					$l[] = $a;
+				}
+			}
+			switch(count($l)) {
+				case 0:
+					break;
+				case 1:
+					$author = $l[0];
+					break;
+				default:
+					$author = $l[mt_rand(0, count($l) - 1)];
+					break;
+			}
+		}
 		Enviro::write("Committing to {$this->repository}/{$this->branch}... ");
 		$prevDir = getcwd();
 		chdir($this->localPath);
 		try {
 			Enviro::run('git', 'add --all');
-			Enviro::run('git', 'commit -m "' . str_replace('"', "'", $comment) . '"');
+			$args = 'commit';
+			if(strlen($author)) {
+				$args .= ' --author="' . str_replace('"', "'", $author) . '"';
+			}
+			if(strlen($comment)) {
+				$args .= ' --message="' . str_replace('"', "'", $comment) . '"';
+			}
+			Enviro::run('git', $args);
 			Enviro::write("done.\n");
 			chdir($prevDir);
 		}

@@ -251,7 +251,7 @@ if(count($changedTranslations) > 0) {
 	else {
 		$commitMessage = 'Updated languages: ' . implode(', ', $changedTranslations);
 	}
-	$gitter->commit($commitMessage);
+	$gitter->commit($commitMessage, C5TT_GITHUB_LANGCOPY_AUTHORS);
 }
 
 if(count($removedTranslations) > 0) {
@@ -264,6 +264,6 @@ if(count($removedTranslations) > 0) {
 		}
 		$commitNames[] = $removedTranslation['resource'] . '/' . $removedTranslation['language'];
 	}
-	$gitter->commit('Removed languages: ' . implode(', ', $commitNames));
+	$gitter->commit('Removed languages: ' . implode(', ', $commitNames), C5TT_GITHUB_LANGCOPY_AUTHORS);
 }
 $gitter->push();
