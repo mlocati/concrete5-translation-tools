@@ -51,6 +51,9 @@ function stopForError($description, $code = null, $file = '', $line = null, $tra
 		}
 		mail(C5TT_NOTIFYERRORS_TO, $subject, $text, implode("\r\n", $headers));
 	}
+	if(class_exists('Locker')) {
+		Locker::releaseAll();
+	}
 	die(empty($code) ? 1 : $code);
 }
 
@@ -81,8 +84,15 @@ function executionDone() {
 				break;
 		}
 	}
+	if(class_exists('Locker')) {
+		Locker::releaseAll();
+	}
 }
 
 // Let's include
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'configuration.php';
 require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'enviro.php';
+require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'locker.php';
+
+// Let's ensure that we run just one concrete5-translation-tools script at a time.
+new Locker(C5TT_LOCKFILE);

@@ -137,6 +137,11 @@ if(!defined('C5TT_NOTIFYERRORS_TO')) {
 }
 
 
+/** The lock file name.
+* @var string
+*/
+define('C5TT_LOCKFILE', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'c5tt-lockfile');
+
 /** The local copy of the Transifex data.
 * @var string
 */
