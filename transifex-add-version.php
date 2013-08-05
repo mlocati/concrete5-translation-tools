@@ -229,7 +229,10 @@ function parseArguments() {
 					if(!is_file($value)) {
 						throw new Exception("Unable to find the file '$value'.");
 					}
-					$args['pot'] = $value;
+					$args['pot'] = realpath($value);
+					if($args['pot'] === false) {
+						throw new Exception("Unable to find the file '$value'.");
+					}
 				}
 				break;
 			default:
