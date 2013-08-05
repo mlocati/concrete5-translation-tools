@@ -38,7 +38,7 @@ $gitter->pullOrInitialize();
 $changedTranslations = array();
 $changedAllTranslations = true;
 foreach($translations as $translation) {
-	Enviro::write("Cheking changes for {$translation->getName()}... ");
+	Enviro::write("Checking changes for {$translation->getName()}... ");
 	$gitFolder = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, $translation->resourceSlug);
 	$gitPo = Enviro::mergePath($gitFolder, $translation->languageCode . '.po');
 	if($translation->detectChanges($gitPo)) {
