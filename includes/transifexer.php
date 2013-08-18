@@ -133,20 +133,21 @@ class Transifexer {
 			@curl_close($hCurl);
 			throw $x;
 		}
-		switch(empty($info['http_code']) ? 0 : $info['http_code']) {
-			case 200:
-				break;
-			case 400:
-				if(strpos($response, 'Unknown language code ') === 0) {
-					throw TransifexerException::getByCode(TransifexerException::INVALID_LANGUAGE);
-				}
-				throw TransifexerException::getByCode(TransifexerException::UNEXPECTED_TRANSFER_ERROR, 'Error ' . $info['http_code'] . ' in response from Transifex');
-			case 401:
-				throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_LOGIN);
-			case 404:
-				throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
-			default:
-				throw TransifexerException::getByCode(TransifexerException::UNEXPECTED_TRANSFER_ERROR, 'Error ' . $info['http_code'] . ' in response from Transifex');
+		$httpCode = empty($info['http_code']) ? 0 : @intval($info['http_code']);
+		if(($httpCode < 200) || ($httpCode > 299)) {
+			switch($httpCode) {
+				case 400:
+					if(strpos($response, 'Unknown language code ') === 0) {
+						throw TransifexerException::getByCode(TransifexerException::INVALID_LANGUAGE);
+					}
+					throw TransifexerException::getByCode(TransifexerException::UNEXPECTED_TRANSFER_ERROR, 'Error ' . $info['http_code'] . ' in response from Transifex');
+				case 401:
+					throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_LOGIN);
+				case 404:
+					throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+				default:
+					throw TransifexerException::getByCode(TransifexerException::UNEXPECTED_TRANSFER_ERROR, 'Error ' . $info['http_code'] . ' in response from Transifex');
+			}
 		}
 		if($decodeJSON) {
 			if(!function_exists('json_decode')) {
