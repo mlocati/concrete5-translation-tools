@@ -4,6 +4,10 @@ require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SE
 // Let's parse the script arguments
 $args = parseArguments();
 
+// Check commands
+Enviro::run('msgcat', '--version');
+Enviro::run('msgmerge', '--version');
+
 // Some initialization
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'tempfolder.php');
@@ -112,6 +116,7 @@ else {
 		throw new Exception("Unable to read content of file '$potFile'.");
 	}
 	$destinationInfo = $transifexer->createResource(C5TT_TRANSIFEX_PROJECT, $options);
+	Enviro::write("done.\n");
 	$transifexer->pull(C5TT_TRANSIFEX_PROJECT, C5TT_TRANSIFEX_WORKPATH, false, $args['destination']);
 	Enviro::write("done.\n");
 }
