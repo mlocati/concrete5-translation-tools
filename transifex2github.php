@@ -35,20 +35,28 @@ $gitter = new Gitter('github.com', C5TT_GITHUB_LANGCOPY_OWNER, C5TT_GITHUB_LANGC
 $gitter->pullOrInitialize();
 
 // Let's check if some translations has changed: if so let's copy the .po and .mo files to the repository.
+$allResourceSlugs = array();
 $changedTranslations = array();
-$changedAllTranslations = true;
+$changedAllTranslations = array();
+$changedTranslationsCount = 0;
 foreach($translations as $translation) {
+	if(array_search($translation->resourceSlug, $allResourceSlugs) === false) {
+		$allResourceSlugs[] = $translation->resourceSlug;
+		$changedTranslations[$translation->resourceSlug] = array();
+		$changedAllTranslations[$translation->resourceSlug] = true;
+	}
 	Enviro::write("Checking changes for {$translation->getName()}... ");
 	$gitFolder = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, $translation->resourceSlug);
 	$gitPo = Enviro::mergePath($gitFolder, $translation->languageCode . '.po');
 	if($translation->detectChanges($gitPo)) {
 		$translation->copyTo($gitFolder, $translation->languageCode);
 		Enviro::write("CHANGED!\n");
-		$changedTranslations[] = $translation->resourceSlug . '/' . $translation->languageCode;
+		$changedTranslations[$translation->resourceSlug][] =  $translation->languageCode;
+		$changedTranslationsCount++;
 	}
 	else {
 		Enviro::write("unchanged.\n");
-		$changedAllTranslations = false;
+		$changedAllTranslations[$translation->resourceSlug] = false;
 	}
 }
 
@@ -94,12 +102,12 @@ foreach($gitResources as $gitResource => $gitLanguages) {
 	}
 }
 
-if((count($changedTranslations) == 0) && (count($removedTranslations) == 0)) {
+if(($changedTranslationsCount == 0) && (count($removedTranslations) == 0)) {
 	Enviro::write("No change detected: git untouched.\n");
 	die(0);
 }
 
-if(count($changedTranslations) > 0) {
+if($changedTranslationsCount > 0) {
 	// Let's generate the statistics file
 	$now = gmdate('c');
 	Enviro::write("Creating current statistic files...");
@@ -245,12 +253,17 @@ if(count($changedTranslations) > 0) {
 	}
 	
 	// Let's commit and push the repository.
-	if($changedAllTranslations) {
-		$commitMessage = 'All languages updated';
+	$resourceMessages = array();
+	foreach($allResourceSlugs as $resourceSlug) {
+		if($changedAllTranslations[$resourceSlug]) {
+			$resourceMessage = 'all';
+		}
+		else {
+			$resourceMessage = implode(', ', $changedTranslations[$resourceSlug]);
+		}
+		$resourceMessages[] = "$resourceSlug ($resourceMessage)";
 	}
-	else {
-		$commitMessage = 'Updated languages: ' . implode(', ', $changedTranslations);
-	}
+	$commitMessage = 'Updated: ' . implode('; ', $resourceMessages);
 	$gitter->commit($commitMessage, C5TT_GITHUB_LANGCOPY_AUTHORS);
 }
 
