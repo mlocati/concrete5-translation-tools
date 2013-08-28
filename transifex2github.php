@@ -259,6 +259,9 @@ if($changedTranslationsCount > 0) {
 			$resourceMessage = 'all';
 		}
 		else {
+			if(empty($changedTranslations[$resourceSlug])) {
+				continue;
+			}
 			$resourceMessage = implode(', ', $changedTranslations[$resourceSlug]);
 		}
 		$resourceMessages[] = "$resourceSlug ($resourceMessage)";
