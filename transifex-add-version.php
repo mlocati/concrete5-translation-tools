@@ -9,6 +9,8 @@ Enviro::run('msgcat', '--version');
 Enviro::run('msgmerge', '--version');
 Enviro::run('msgfmt', '--version');
 
+@set_time_limit(0);
+
 // Some initialization
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'tempfolder.php');
