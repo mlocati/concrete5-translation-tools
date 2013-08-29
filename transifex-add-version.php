@@ -108,7 +108,7 @@ else {
 	$options = array();
 	$options['slug'] = $args['destination'];
 	$options['name'] = $args['destination'];
-	$options['accept_translations'] = $sourceInfo['accept_translations'] ? true : false;
+	$options['accept_translations'] = false;
 	$options['i18n_type'] = 'PO';
 	$options['category'] = $sourceInfo['category'];
 	$options['content'] = @file_get_contents($potFile);
@@ -196,6 +196,7 @@ try {
 	Enviro::write("Pushing new translations for '{$args['destination']}'... ");
 	$transifexer->push(C5TT_TRANSIFEX_WORKPATH, C5TT_TRANSIFEX_PROJECT, $args['destination']);
 	Enviro::write("done.\n");
+	Enviro::write("All done: now you have to go to the Transifex website and enable translations for the new resource.\n");
 }
 catch(Exception $x) {
 	if($transifexDirty) {
