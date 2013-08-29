@@ -7,6 +7,7 @@ $args = parseArguments();
 // Check commands
 Enviro::run('msgcat', '--version');
 Enviro::run('msgmerge', '--version');
+Enviro::run('msgfmt', '--version');
 
 // Some initialization
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
@@ -81,6 +82,35 @@ if(empty($translationsToClone)) {
 }
 Enviro::write("done (" . count($translationsToClone) . " .po files found).\n");
 
+Enviro::write("Verifying the translations to be cloned... ");
+$moTempFolder = new TempFolder();
+$moTempFile = $moTempFolder->getNewFile(true);
+$numberOfErrors = 0;
+foreach($translationsToClone as $translationToClone) {
+	Enviro::write("\n\t" . $translationToClone->languageCode . ': ');
+	try {
+		Enviro::run(
+			'msgfmt',
+			array(
+				'--check-format', // check language dependent format strings
+				'--check-header', // verify presence and contents of the header entry
+				'--output-file=' . escapeshellarg($moTempFile),
+				escapeshellarg($translationToClone->poPath)
+			)
+		);
+		Enviro::write('ok.');
+	}
+	catch(Exception $x) {
+		$numberOfErrors++;
+		Enviro::write("ERROR!!!\n" . $x->getMessage() . "\n", true);
+	}
+}
+unset($moTempFolder);
+if($numberOfErrors > 0) {
+	Enviro::write("\nPlease fix the above $numberOfErrors . errors!\n", true);
+	die(1);
+}
+Enviro::write("\nAll ok!\n");
 if($destinationInfo) {
 	// Destination resource already existing: let's retrieve its .pot file
 	$tempFolder = new TempFolder();
