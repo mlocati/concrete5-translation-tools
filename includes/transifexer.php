@@ -423,6 +423,14 @@ class Transifexer {
 		}
 		@chdir($prevDir);
 	}
+	public function getSource($projectSlug, $resourceSlug, $removeComments = false) {
+		$result = $this->query("project/$projectSlug/resource/$resourceSlug/content/");
+		if((!is_array($result)) || (!array_key_exists('content', $result)) || (!is_string($result['content'])) || (!strlen($result['content'])) || (!array_key_exists('mimetype', $result)) || ($result['mimetype'] !== 'text/x-po')) {
+			throw new Exception('Invalid downloaded source');
+		}
+		$result = str_replace("\r", "\n", str_replace("\r\n", "\n", $result['content']));
+		return $result;
+	}
 }
 
 /** An exception related to Transifexer */
