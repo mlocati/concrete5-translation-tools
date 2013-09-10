@@ -41,7 +41,7 @@ function stopForError($description, $code = null, $file = '', $line = null, $tra
 	fwrite($stderr, $text);
 	fflush($stderr);
 	fclose($stderr);
-	if(defined('C5TT_NOTIFYERRORS_TO') && strlen(C5TT_NOTIFYERRORS_TO)) {
+	if(((!defined('C5TT_NOTIFYERRORS')) || C5TT_NOTIFYERRORS) && defined('C5TT_NOTIFYERRORS_TO') && strlen(C5TT_NOTIFYERRORS_TO)) {
 		$headers = array();
 		$headers[] = 'From: ' . C5TT_EMAILSENDERADDRESS;
 		$subject = 'concrete5 translation tools error';
