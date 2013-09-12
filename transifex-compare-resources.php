@@ -35,7 +35,7 @@ switch(count($argv)) {
 			echo "X: Abort\n\n";
 			for(;;) {
 				echo "Your choice? ";
-				$s =  strtoupper(trim(fgets(STDIN)));
+				$s = strtoupper(trim(fgets(STDIN)));
 				if($s === 'X') {
 					echo "Abort.\n";
 					die(0);
@@ -186,7 +186,7 @@ for(;;) {
 	echo "\nPress X to quit.\n\n";
 	for(;;) {
 		echo "Your choice? ";
-		$s =  strtoupper(trim(fgets(STDIN)));
+		$s = strtoupper(trim(fgets(STDIN)));
 		if($s === 'X') {
 			echo "Abort.\n";
 			die(0);
