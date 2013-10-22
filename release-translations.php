@@ -143,6 +143,7 @@ foreach($txResources as $txResourceId => $txFiles) {
 $tempInfofile = $tempFolder->getNewFile(true);
 file_put_contents($tempInfofile, str_replace("\r\n", "\n", "<?php
 header('Last-Modified: " . gmdate('D, d M Y H:i:s') . " GMT');
+header('Expires: " . gmdate('D, d M Y H:i:s', strtotime('+1 day')) . " GMT');
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 ?>" . json_encode($info)));
