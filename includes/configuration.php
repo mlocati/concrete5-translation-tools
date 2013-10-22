@@ -131,11 +131,31 @@ if(!defined('C5TT_EMAILSENDERADDRESS')) {
 
 if(!defined('C5TT_NOTIFYERRORS_TO')) {
 	/** A comma-separated list of email addresses of the recipients of exception notifications.
-	 * @var string
-	 */
+	* @var string
+	*/
 	define('C5TT_NOTIFYERRORS_TO', '');
 }
 
+if(!defined('C5TT_TRANSLATIONRELEASES_FOLDER')) {
+	/** The location of the JavaScript translations info and of the zip files to be downloaded.
+	* @var string
+	*/
+	define('C5TT_TRANSLATIONRELEASES_FOLDER', '/var/www/website/translation-releases');
+}
+
+if(!defined('C5TT_TRANSIFEXRESOURCE_DEV')) {
+	/** The Transifex resource handle of the latest (development) concrete5 version.
+	* @var string
+	*/
+	define('C5TT_TRANSIFEXRESOURCE_DEV', 'core');
+}
+
+if(!defined('C5TT_TRANSIFEXRESOURCE_VMAP')) {
+	/** The map from Transifex resource to the concrete5 versions (in JSON format).
+	* @var string
+	*/
+	define('C5TT_TRANSIFEXRESOURCE_VMAP', '{"core-562": ["5.6.2"], "core-5621": ["5.6.2.1"] }');
+}
 
 /** The lock file name.
 * @var string

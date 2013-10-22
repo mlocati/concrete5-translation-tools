@@ -51,3 +51,12 @@
 
 // A comma-separated list of email addresses of the recipients of exception notifications.
 //define('C5TT_NOTIFYERRORS_TO', 'user1@domain1.com, user2@domain2.com');
+
+// The location of the JavaScript translations info and of the zip files to be downloaded.
+//define('C5TT_TRANSLATIONRELEASES_FOLDER', '/var/www/website/translation-releases');
+
+// The Transifex resource handle of the latest (development) concrete5 version.
+//define('C5TT_TRANSIFEXRESOURCE_DEV', 'core');
+
+// The map from concrete5 version to Transifex resource (in JSON format).
+//define('C5TT_TRANSIFEXRESOURCE_VMAP', '{"core-562": ["5.6.2"], "core-5621": ["5.6.2.1"] }');
