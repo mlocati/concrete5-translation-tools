@@ -584,28 +584,31 @@ class TransifexerTranslation {
 	*/
 	public function compile($checkFormat = false) {
 		Enviro::run('msgfmt', '--statistics ' . ($checkFormat ? ' --check-format' : '') . ' --check-header --check-domain --output-file=' . escapeshellarg($this->moPath) . ' ' . escapeshellarg($this->poPath), 0, $outputLines);
-		$stats = null;
+		$stats = array(
+			'translated' => 0,
+			'untranslated' => 0,
+			'fuzzy' => 0
+		);
+		$someStats = false;
 		foreach($outputLines as $outputLine) {
-			if(preg_match('/(\\d+) translated messages/', $outputLine, $match)) {
-				$stats = array(
-					'translated' => intval($match[1]),
-					'untranslated' => 0,
-					'fuzzy' => 0
-				);
-				if(preg_match('/(\\d+) untranslated messages/', $outputLine, $match)) {
-					$stats['untranslated'] = intval($match[1]);
-				}
-				if(preg_match('/(\\d+) fuzzy translations/', $outputLine, $match)) {
-					$stats['fuzzy'] = intval($match[1]);
-				}
-				$stats['total'] = $stats['translated'] + $stats['untranslated'] + $stats['fuzzy'];
-				$stats['percentual'] = ($stats['translated'] == $stats['total']) ? 100 : ($stats['total'] ? floor($stats['translated'] * 100 / $stats['total']) : 0);
-				break;
+			if(preg_match('/(\\d+) translated message/', $outputLine, $match)) {
+				$stats['translated'] = intval($match[1]);
+				$someStats =  true;
+			}
+			if(preg_match('/(\\d+) untranslated message/', $outputLine, $match)) {
+				$stats['untranslated'] = intval($match[1]);
+				$someStats =  true;
+			}
+			if(preg_match('/(\\d+) fuzzy translation/', $outputLine, $match)) {
+				$stats['fuzzy'] = intval($match[1]);
+				$someStats =  true;
 			}
 		}
-		if(!$stats) {
+		if(!$someStats) {
 			throw new Exception("Unable to parse statistics from the output\n" . implode("\n", $outputLines));
 		}
+		$stats['total'] = $stats['translated'] + $stats['untranslated'] + $stats['fuzzy'];
+		$stats['percentual'] = ($stats['translated'] == $stats['total']) ? 100 : ($stats['total'] ? floor($stats['translated'] * 100 / $stats['total']) : 0);
 		return $stats;
 	}
 	public static function getFilePath($folder, $projectSlug, $resourceSlug, $languageCode) {
