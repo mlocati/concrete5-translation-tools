@@ -1,14 +1,7 @@
 # -*- coding: utf-8 -*-
 
-"""
-Copyright (C) 2010 by Indifex (www.indifex.com), see AUTHORS.
-License: BSD, see LICENSE for details.
+VERSION = (0, 10, 0, 'final')
 
-For further information visit http://code.indifex.com/transifex-client
-"""
-
-
-VERSION = (0, 8, 0, 'final')
 
 def get_version():
     version = '%s.%s' % (VERSION[0], VERSION[1])
