@@ -17,7 +17,12 @@ This script should be launched on a regular basis, so that the GitHub repository
 
 ## `transifex-add-version.php`
 Clones .po translations from a Transifex resource to another Transifex resource.
-This script should be launched manually when a new concrete5 version is released:
-- you generate the .pot of the released concrete5 version (with [i18n.php](https://github.com/mlocati/concrete5-build))
-- you create the new Transifex resource for this concrete5 version with: `php transifex-add-version.php --source=core-dev --destination=core-<NewVersion> --pot=<PotLocation>`
-- you can also update existing resource translations (same syntax, but without the `--pot` parameter)
+This script should be launched manually when a new concrete5 version is released.
+First of all you have to the .pot of the released concrete5 version (with [i18n.php](https://github.com/mlocati/concrete5-build)).
+
+The you have two options:
+- automatic creation of the new Transifex resource
+	- create the new Transifex resource for this concrete5 version with: `php transifex-add-version.php --source=core --destination=core-<NewVersion> --pot=<PotLocation>`
+- manual creation of the new Transifex resource
+	- manually create the new Transifex resource from within the Transifex website
+	- copy the translations to the new resource with: `php transifex-add-version.php --source=core --destination=core-<NewVersion>`
