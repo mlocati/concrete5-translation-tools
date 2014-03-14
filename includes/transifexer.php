@@ -85,7 +85,7 @@ class Transifexer {
 					}
 				}
 			}
-			if(!@curl_setopt($hCurl, CURLOPT_SSL_VERIFYHOST, $this->checkSSL ? 2 : 1)) {
+			if(!@curl_setopt($hCurl, CURLOPT_SSL_VERIFYHOST, $this->checkSSL ? 2 : 0)) {
 				throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 			}
 			if(!@curl_setopt($hCurl, CURLOPT_SSL_VERIFYPEER, $this->checkSSL ? true : false)) {
