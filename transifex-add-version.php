@@ -142,7 +142,9 @@ else {
 	$options['name'] = $args['destination'];
 	$options['accept_translations'] = false;
 	$options['i18n_type'] = 'PO';
-	$options['category'] = array_key_exists('category', $sourceInfo) ? $sourceInfo['category'] : '';
+	if(array_key_exists('category', $sourceInfo)) {
+		$options['category'] =  $sourceInfo['category'];
+	}
 	$options['content'] = @file_get_contents($potFile);
 	if($options['content'] === false) {
 		throw new Exception("Unable to read content of file '$potFile'.");
