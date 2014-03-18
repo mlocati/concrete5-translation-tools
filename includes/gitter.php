@@ -59,6 +59,25 @@ class Gitter {
 			$this->initialize();
 		}
 	}
+	/** Switch to another branch
+	* @param string $newBranch
+	* @throws Exception Throws an Exception in case of errors.
+	*/
+	public function changeBranch($branch) {
+		$prevDir = getcwd();
+		chdir($this->localPath);
+		try {
+			Enviro::write("Switching to branch $branch... ");
+			Enviro::run('git', "checkout $branch");
+			Enviro::write("done.\n");
+		}
+		catch(Exception $x) {
+			chdir($prevDir);
+			throw $x;
+		}
+		chdir($prevDir);
+		$this->branch = $branch;
+	}
 	private function getRemotePath() {
 		if($this->writeEnabled) {
 			return "git@{$this->host}:{$this->owner}/{$this->repository}.git";
@@ -87,12 +106,12 @@ class Gitter {
 			Enviro::run('git', "clone {$this->getRemotePath()} .");
 			Enviro::run('git', "checkout {$this->branch}");
 			Enviro::write("done.\n");
-			chdir($prevDir);
 		}
 		catch(Exception $x) {
 			chdir($prevDir);
 			throw $x;
 		}
+		chdir($prevDir);
 	}
 	/** Ensures that the local folder contains the remote data.
 	* @throws Exception Throws an Exception in case of errors.
@@ -110,12 +129,12 @@ class Gitter {
 			Enviro::run('git', "reset --hard origin/{$this->branch}");
 			Enviro::run('git', "clean -f -d");
 			Enviro::write("done.\n");
-			chdir($prevDir);
 		}
 		catch(Exception $x) {
 			chdir($prevDir);
 			throw $x;
 		}
+		chdir($prevDir);
 	}
 	/** Commit everything.
 	* @param string $comment Commit comment.
@@ -165,12 +184,12 @@ class Gitter {
 			}
 			Enviro::run('git', $args);
 			Enviro::write("done.\n");
-			chdir($prevDir);
 		}
 		catch(Exception $x) {
 			chdir($prevDir);
 			throw $x;
 		}
+		chdir($prevDir);
 	}
 	/** Push to the remote git server.
 	* @throws Exception Throws an Exception in case of errors.
@@ -182,11 +201,11 @@ class Gitter {
 		try {
 			Enviro::run('git', "push origin {$this->branch}");
 			Enviro::write("done.\n");
-			chdir($prevDir);
 		}
 		catch(Exception $x) {
 			chdir($prevDir);
 			throw $x;
 		}
+		chdir($prevDir);
 	}
 }
