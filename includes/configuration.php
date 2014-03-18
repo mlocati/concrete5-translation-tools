@@ -181,3 +181,46 @@ define('C5TT_GITHUB_LANGCOPY_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'g
 * @var string
 */
 define('C5TT_GITHUB_TOOLS_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'github-tools');
+
+if(!defined('C5TT_TRANSIFEX_PACKAGES_PROJECT')) {
+	/** The Transifex project name for packages translations.
+	 * @var string
+	 */
+	define('C5TT_TRANSIFEX_PACKAGES_PROJECT', 'concrete5-packages');
+}
+
+/** The local copy of the Transifex data for packages translations.
+ * @var string
+ */
+define('C5TT_TRANSIFEX_PACKAGES_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'transifex-packages');
+/** The local folder where the master branch of the concrete5 core is stored.
+ * @var string
+ */
+define('C5TT_GITHUB_PACKAGES_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'github-packages');
+
+if(!defined('C5TT_GITHUB_PACKAGES_OWNER')) {
+	/** GitHub user owning the repository with the packages translations.
+	 * @var string
+	 */
+	define('C5TT_GITHUB_PACKAGES_OWNER', 'mlocati');
+}
+
+if(!defined('C5TT_GITHUB_PACKAGES_REPOSITORY')) {
+	/** GitHub repository for the packages translations.
+	 * @var string
+	 */
+	define('C5TT_GITHUB_PACKAGES_REPOSITORY', 'concrete5-packages');
+}
+
+if(!defined('C5TT_GITHUB_PACKAGES_BRANCH_FILES')) {
+	/** The branch of the GitHub repository that contains the packages translations.
+	 * @var string
+	 */
+	define('C5TT_GITHUB_PACKAGES_BRANCH_FILES', 'master');
+}
+if(!defined('C5TT_GITHUB_PACKAGES_BRANCH_WEB')) {
+	/** The branch of the GitHub repository that contains the web page for packages translations.
+	 * @var string
+	 */
+	define('C5TT_GITHUB_PACKAGES_BRANCH_WEB', 'gh-pages');
+}
