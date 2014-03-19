@@ -679,28 +679,37 @@ class TransifexerTranslation {
 		if(!is_file($poPath)) {
 			return true;
 		}
+		return self::arePoDifferent($this->poPath, $poPath);
+	}
+	/** Checks if two .po files are different
+	* @param string $po1
+	* @param string $po2
+	* @return boolean
+	* @throws Exception Throws an Exception in case of errors.
+	*/
+	public static function arePoDifferent($po1, $po2) {
 		// Read files content
-		$thisData = @file_get_contents($this->poPath);
-		if($thisData === false) {
-			throw new Exception("Error reading file '{$this->poPath}'.");
+		$data1 = @file_get_contents($po1);
+		if($data1 === false) {
+			throw new Exception("Error reading file '$po1'.");
 		}
-		$thatData = @file_get_contents($poPath);
-		if($thatData === false) {
-			throw new Exception("Error reading file '$poPath'.");
+		$data2 = @file_get_contents($po2);
+		if($po2 === false) {
+			throw new Exception("Error reading file '$po2'.");
 		}
 		// Exactly the same contents?
-		if(strcmp($thisData, $thatData) === 0) {
+		if(strcmp($data1, $data2) === 0) {
 			return false;
 		}
 		// Contents not exactly equal
 		// Remove POT-Creation-Date / PO-Creation-Date from the header
-		$thisData = preg_replace('/(POT-Creation-Date|PO-Revision-Date): [0-9:\\-+ ]+/', '', $thisData);
-		$thatData = preg_replace('/(POT-Creation-Date|PO-Revision-Date): [0-9:\\-+ ]+/', '', $thatData);
+		$data1 = preg_replace('/(POT-Creation-Date|PO-Revision-Date): [0-9:\\-+ ]+/', '', $data1);
+		$data2 = preg_replace('/(POT-Creation-Date|PO-Revision-Date): [0-9:\\-+ ]+/', '', $data2);
 		// Remove location comments
-		$thisData = preg_replace('/^#: [^\r\n]+[\r\n]+/m', '', $thisData);
-		$thatData = preg_replace('/^#: [^\r\n]+[\r\n]+/m', '', $thatData);
+		$data1 = preg_replace('/^#: [^\r\n]+[\r\n]+/m', '', $data1);
+		$data2 = preg_replace('/^#: [^\r\n]+[\r\n]+/m', '', $data2);
 		// Simplified contents are equals?
-		if(strcmp($thisData, $thatData) === 0) {
+		if(strcmp($data1, $data2) === 0) {
 			return false;
 		}
 		return true;
