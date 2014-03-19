@@ -276,7 +276,7 @@ class Package {
 	* @param TempFolder $moTempFolder The temporary folder where to save the .zip files
 	* @return boolean Returns false if package has no translations, false otherwise
 	* @throws Exception Throws an exception in case of errors
-	 */
+	*/
 	public function process($moTempFolder) {
 		Enviro::write("Processing package {$this->handle}...\n");
 		$this->allLocales = array();
@@ -289,7 +289,7 @@ class Package {
 			$fullPath = Enviro::mergePath($this->txDirectory, $item);
 			if(is_file($fullPath) && preg_match('/(\\w.*)\\.po/i', $item, $m)) {
 				$this->allLocales[$m[1]] = array('poFile' => $fullPath);
-			} 
+			}
 		}
 		closedir($hDir);
 		if(empty($this->allLocales)) {
@@ -319,15 +319,15 @@ class Package {
 			foreach($outputLines as $outputLine) {
 				if(preg_match('/(\\d+) translated message/', $outputLine, $match)) {
 					$stats['translated'] = intval($match[1]);
-					$someStats =  true;
+					$someStats = true;
 				}
 				if(preg_match('/(\\d+) untranslated message/', $outputLine, $match)) {
 					$stats['untranslated'] = intval($match[1]);
-					$someStats =  true;
+					$someStats = true;
 				}
 				if(preg_match('/(\\d+) fuzzy translation/', $outputLine, $match)) {
 					$stats['fuzzy'] = intval($match[1]);
-					$someStats =  true;
+					$someStats = true;
 				}
 			}
 			if(!$someStats) {
@@ -410,7 +410,6 @@ function deleteOldZipFolders() {
 	for($i = 0; $i < count($oldDirs) - 2; $i++) {
 		Enviro::deleteFolder(Enviro::mergePath(C5TT_PATH_PACKAGES_TRANSLATIONS, $oldDirs[$i]));
 	}
-	
 }
 function sortOldZipFolders($a, $b) {
 	return @intval($a) - @intval($b);
