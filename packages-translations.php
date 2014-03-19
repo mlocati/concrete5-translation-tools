@@ -13,10 +13,10 @@ if(empty(Package::$all)) {
 
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'gitter.php');
-////////////////////////////////////////////////////////////////////////$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
+$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
 
 // Let's pull all the Transifex data
-////////////////////////////////////////////////////////////////////////$transifexer->pull(C5TT_TRANSIFEX_PACKAGES_PROJECT, C5TT_TRANSIFEX_PACKAGES_WORKPATH);
+$transifexer->pull(C5TT_TRANSIFEX_PACKAGES_PROJECT, C5TT_TRANSIFEX_PACKAGES_WORKPATH);
 
 
 // Let's list the translations
