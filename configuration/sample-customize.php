@@ -60,3 +60,21 @@
 
 // The map from concrete5 version to Transifex resource (in JSON format).
 //define('C5TT_TRANSIFEXRESOURCE_VMAP', '{"core-562": ["5.6.2"], "core-5621": ["5.6.2.1"], "core-563": ["5.6.3"]}');
+
+// The Transifex project name for packages translations.
+//define('C5TT_TRANSIFEX_PACKAGES_PROJECT', 'concrete5-packages');
+
+/// GitHub user owning the repository with the packages translations.
+//define('C5TT_GITHUB_PACKAGES_OWNER', 'mlocati');
+
+// GitHub repository for the packages translations.
+//define('C5TT_GITHUB_PACKAGES_REPOSITORY', 'concrete5-packages');
+
+// The branch of the GitHub repository that contains the packages translations.
+//define('C5TT_GITHUB_PACKAGES_BRANCH_FILES', 'master');
+
+// The branch of the GitHub repository that contains the web page for packages translations.
+//define('C5TT_GITHUB_PACKAGES_BRANCH_WEB', 'gh-pages');
+
+// The location where the package translations files will be saved.
+//define('C5TT_PATH_PACKAGES_TRANSLATIONS', '/var/www/website/packages-translations');
