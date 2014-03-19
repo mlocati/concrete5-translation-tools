@@ -165,14 +165,15 @@ class Gitter {
 		Enviro::write("Committing to {$this->repository}/{$this->branch}... ");
 		$prevDir = getcwd();
 		chdir($this->localPath);
+		$tempFolder = null;
 		try {
 			if($author) {
 				Enviro::run('git', 'config --local user.name "' . str_replace('"', "'", $author['name']) . '"');
 				Enviro::run('git', 'config --local user.email "' . str_replace('"', "'", $author['email']) . '"');
 			}
 			else {
-				Enviro::run('git', 'config --local --unset user.name');
-				Enviro::run('git', 'config --local --unset user.email');
+				Enviro::run('git', 'config --local --unset user.name', array(0, 5));
+				Enviro::run('git', 'config --local --unset user.email', array(0, 5));
 			}
 			Enviro::run('git', 'add --all');
 			$args = 'commit';
@@ -180,26 +181,52 @@ class Gitter {
 				$args .= ' --author="' . str_replace('"', "'", "{$author['name']} <{$author['email']}>") . '"';
 			}
 			if(strlen($comment)) {
-				$args .= ' --message="' . str_replace('"', "'", $comment) . '"';
+				$comment = str_replace("\r", "\n", str_replace("\r\n", "\n", $comment));
+				if(strpos($comment, "\n") === false) {
+					$args .= ' --message="' . str_replace('"', "'", $comment) . '"';
+				}
+				else {
+					require_once Enviro::mergePath(dirname(__FILE__), 'tempfolder.php');
+					$tempFolder = new TempFolder();
+					$tempFile = $tempFolder->getNewFile();
+					if(@file_put_contents($tempFile, $comment) === false) {
+						throw new Exception('Error saving comment to a temporary file');
+					}
+					$args .= ' --file=' . escapeshellarg($tempFile);
+				}
 			}
 			Enviro::run('git', $args);
+			if($tempFolder) {
+				unset($tempFolder);
+				$tempFolder = null;
+			}
 			Enviro::write("done.\n");
 		}
 		catch(Exception $x) {
 			chdir($prevDir);
+			if($tempFolder) {
+				unset($tempFolder);
+				$tempFolder = null;
+			}
 			throw $x;
 		}
 		chdir($prevDir);
 	}
 	/** Push to the remote git server.
+	* @param bool $allLocalBranches = false Set to true to push all local branches, false to push only current branch
 	* @throws Exception Throws an Exception in case of errors.
 	*/
-	public function push() {
+	public function push($allLocalBranches = false) {
 		Enviro::write("Pushing to {$this->host}/{$this->owner}/{$this->repository}... ");
 		$prevDir = getcwd();
 		chdir($this->localPath);
 		try {
-			Enviro::run('git', "push origin {$this->branch}");
+			if($allLocalBranches) {
+				Enviro::run('git', 'push --all origin');
+			}
+			else {
+				Enviro::run('git', "push origin {$this->branch}");
+			}
 			Enviro::write("done.\n");
 		}
 		catch(Exception $x) {
