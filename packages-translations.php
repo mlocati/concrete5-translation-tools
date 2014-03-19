@@ -5,7 +5,7 @@ require_once dirname(__FILE__) . '/includes/startup.php';
 // Let's include the dependencies
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'tempfolder.php');
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'packages.php');
+require_once Enviro::mergePath(C5TT_CONFIGPATH, 'packages.php');
 
 if(empty(Package::$all)) {
 	throw new Exception('No packages loaded!');
