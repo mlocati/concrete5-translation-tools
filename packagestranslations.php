@@ -35,41 +35,135 @@ foreach(Package::$all as $packageHandle => $package) {
 	}
 }
 
+// Let's be sure about the destination folder for .zip files
+if(!@is_dir(C5TT_PATH_PACKAGES_TRANSLATIONS)) {
+	@mkdir(C5TT_PATH_PACKAGES_TRANSLATIONS, 0777, true);
+	if(!@is_dir(C5TT_PATH_PACKAGES_TRANSLATIONS)) {
+		throw new Exception('Unable to create the directory ' . C5TT_PATH_PACKAGES_TRANSLATIONS);
+	}
+}
+if(!is_writable(C5TT_PATH_PACKAGES_TRANSLATIONS)) {
+	throw new Exception('Unable write to the directory ' . C5TT_PATH_PACKAGES_TRANSLATIONS);
+}
 // Let's pull the latest branch version of the repository containing the translations
 $gitter = new Gitter('github.com', C5TT_GITHUB_PACKAGES_OWNER, C5TT_GITHUB_PACKAGES_REPOSITORY, C5TT_GITHUB_PACKAGES_BRANCH_WEB, C5TT_GITHUB_PACKAGES_WORKPATH, true);
 ////////////////////////////// $gitter->pullOrInitialize();
 $gitter->changeBranch(C5TT_GITHUB_PACKAGES_BRANCH_FILES);
-//////////////////////////// $gitter->pullOrInitialize();
+///////////////////////////// $gitter->pullOrInitialize();
 
+$timestamp = time();
 $moTempFolder = new TempFolder();
 $newMoFiles = array();
-$jsData = array();
+$jsPackages = array();
+$newPackages = array();
+$deletedPackages = array();
+$updatedPackages = array();
 foreach(Package::$all as /* @var $package Package */$package) {
+	$jsPackage = array(
+		'handle' => $package->concrete5Handle,
+		'name' => $package->name,
+		'sourceURL' => $package->sourceURL
+	);
 	if($package->process($moTempFolder)) {
-		$jsData[] = array(
-			'handle' => $package->concrete5Handle,
-			'name' => $package->name,
-			'locales' => $package->translatedLocales
-		);
+		$jsPackage['locales'] = $package->translatedLocales;
 		$newMoFiles[] = $package->moFile;
+		$ghFolder = Enviro::mergePath(C5TT_GITHUB_PACKAGES_WORKPATH, $package->concrete5Handle);
+		if(!is_dir($ghFolder)) {
+			@mkdir($ghFolder);
+			if(!is_dir($ghFolder)) {
+				throw new Exception('Unable to create folder ' . $ghFolder);
+			}
+			foreach($package->allLocales as $localeInfo) {
+				$toFile = Enviro::mergePath($ghFolder, basename($localeInfo['poFile']));
+				if(@copy($localeInfo['poFile'], $toFile) === false) {
+					throw new Exception("Unable to copy from '{$localeInfo['poFile']}' to '$toFile'");
+				}
+			}
+			$newPackages[] = $package->concrete5Handle;
+		}
+		else {
+			$updated = array();
+			$ghFiles = array();
+			$hDir = @opendir($ghFolder);
+			while(($item = readdir($hDir)) !== false) {
+				if(strpos($item, '.') !== 0) {
+					$ghFiles[] = $item;
+				}
+			}
+			foreach($ghFiles as $ghFile) {
+				if(preg_match('/^(.+)\\.po$/', $ghFile, $m) && (!array_key_exists($m[1], $package->allLocales))) {
+					$f = Enviro::mergePath($ghFolder, $ghFile);
+					if(@unlink($f) === false) {
+						throw new Exception('Unable to delete file ' . $f);
+					}
+					if(!array_key_exists('removed', $updated)) {
+						$updated['removed'] = array();
+					}
+					$updated['removed'][] = $m[1];
+				}
+			}
+			closedir($hDir);
+			foreach($package->allLocales as $locale => $localeInfo) {
+				$ghFile = Enviro::mergePath($ghFolder, "$locale.po");
+				if(is_file($ghFile)) {
+					if(TransifexerTranslation::arePoDifferent($localeInfo['poFile'], $ghFile)) {
+						if(@unlink($ghFile) === false) {
+							throw new Exception('Unable to delete file ' . $ghFile);
+						}
+						if(@copy($localeInfo['poFile'], $ghFile) === false) {
+							throw new Exception("Unable to copy from '{$localeInfo['poFile']}' to '$ghFile'");
+						}
+						if(!array_key_exists('updated', $updated)) {
+							$updated['updated'] = array();
+						}
+						$updated['updated'][] = $locale;
+					}
+				}
+				else {
+					if(@copy($localeInfo['poFile'], $ghFile) === false) {
+						throw new Exception("Unable to copy from '{$localeInfo['poFile']}' to '$ghFile'");
+					}
+					if(!array_key_exists('added', $updated)) {
+						$updated['added'] = array();
+					}
+					$updated['added'][] = $locale;
+				}
+			}
+			if(!empty($updated)) {
+				$updatedPackages[$package->concrete5Handle] = $updated;
+			}
+		}
+	}
+	$jsPackages[] = $jsPackage;
+}
+$hDir = @opendir(C5TT_GITHUB_PACKAGES_WORKPATH);
+while(($item = readdir($hDir)) !== false) {
+	if(strpos($item, '.') !== 0) {
+		$fullPath = Enviro::mergePath(C5TT_GITHUB_PACKAGES_WORKPATH, $item);
+		if(is_dir($fullPath)) {
+			if(!array_key_exists($item, Package::$all)) {
+				Enviro::deleteFolder($fullPath);
+				$deletedPackages[] = $item;
+			}
+		}
 	}
 }
+closedir($hDir);
 $gitter->changeBranch(C5TT_GITHUB_PACKAGES_BRANCH_WEB);
-$ghZipFolder = Enviro::mergePath(C5TT_GITHUB_PACKAGES_WORKPATH, 'translations');
-if(file_exists($ghZipFolder)) {
-	Enviro::deleteFolder($ghZipFolder, true);
-}
-else {
-	@mkdir($ghZipFolder);
-}
-if(!is_dir($ghZipFolder)) {
-	throw new Exception('Unable to create the directory ' . $ghZipFolder);
+$zipFolder = Enviro::mergePath(C5TT_PATH_PACKAGES_TRANSLATIONS, $timestamp);
+@mkdir($zipFolder);
+if(!is_dir($zipFolder)) {
+	throw new Exception('Unable to create the directory ' . $zipFolder);
 }
 foreach($newMoFiles as $newMoFile) {
-	if(@rename($newMoFile, Enviro::mergePath($ghZipFolder, basename($newMoFile))) === false) {
-		throw new Exception('Unable to move the zip file to the filan directory ' . newMoFile);
+	if(@rename($newMoFile, Enviro::mergePath($zipFolder, basename($newMoFile))) === false) {
+		throw new Exception('Unable to move the zip file to the directory ' . $zipFolder);
 	}
 }
+$jsData = array(
+	'updated' => $timestamp,
+	'packages' => $jsPackages
+);
 print_r($jsData);
 die(0);
 
@@ -79,7 +173,7 @@ class Package {
 	public $concrete5Handle;
 	public $name;
 	public $sourceURL;
-	public $poDirectory;
+	public $txDirectory;
 	public $allLocales;
 	public $translatedLocales;
 	public $moFile;
@@ -100,19 +194,19 @@ class Package {
 		if(array_key_exists($this->concrete5Handle, self::$all)) {
 			throw new Exception('Duplicated package handle: ' . $this->concrete5Handle);
 		}
-		$this->poDirectory = Enviro::mergePath(C5TT_TRANSIFEX_PACKAGES_WORKPATH, 'translations', C5TT_TRANSIFEX_PACKAGES_PROJECT . '.' . $this->transifexHandle);
+		$this->txDirectory = Enviro::mergePath(C5TT_TRANSIFEX_PACKAGES_WORKPATH, 'translations', C5TT_TRANSIFEX_PACKAGES_PROJECT . '.' . $this->transifexHandle);
 		self::$all[$this->concrete5Handle] = $this;
 	}
 	public function process($moTempFolder) {
 		Enviro::write("Processing package {$this->concrete5Handle}...\n");
 		$this->allLocales = array();
 		$this->translatedLocales = array();
-		$hDir = @opendir($this->poDirectory);
+		$hDir = @opendir($this->txDirectory);
 		if($hDir === false) {
-			throw new Exception("Failed to open the translations directory: {$this->poDirectory}");
+			throw new Exception("Failed to open the translations directory: {$this->txDirectory}");
 		}
 		while(($item = @readdir($hDir)) !== false) {
-			$fullPath = Enviro::mergePath($this->poDirectory, $item);
+			$fullPath = Enviro::mergePath($this->txDirectory, $item);
 			if(is_file($fullPath) && preg_match('/(\\w.*)\\.po/i', $item, $m)) {
 				$this->allLocales[$m[1]] = array('poFile' => $fullPath);
 			} 
@@ -174,10 +268,10 @@ class Package {
 		}
 		if(empty($this->translatedLocales)) {
 			unset($tempFolder);
-			Enviro::write("  - No languages found: skipping package.\n");
+			Enviro::write("  - No loacles found: skipping package.\n");
 			return false;
 		}
-		Enviro::write("  - Zipping languages (" . implode(', ', array_keys($this->translatedLocales)) . ")... ");
+		Enviro::write("  - Zipping locales (" . implode(', ', array_keys($this->translatedLocales)) . ")... ");
 		$prevDir = getcwd();
 		chdir($tempFolder->getName());
 		try {

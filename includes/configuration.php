@@ -224,3 +224,10 @@ if(!defined('C5TT_GITHUB_PACKAGES_BRANCH_WEB')) {
 	 */
 	define('C5TT_GITHUB_PACKAGES_BRANCH_WEB', 'gh-pages');
 }
+
+if(!defined('C5TT_PATH_PACKAGES_TRANSLATIONS')) {
+	/** The location where the package translations files will be saved.
+	 * @var string
+	 */
+	define('C5TT_PATH_PACKAGES_TRANSLATIONS', '/var/www/website/packages-translations');
+}
