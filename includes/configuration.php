@@ -202,14 +202,14 @@ if(!defined('C5TT_GITHUB_PACKAGES_OWNER')) {
 	/** GitHub user owning the repository with the packages translations.
 	 * @var string
 	 */
-	define('C5TT_GITHUB_PACKAGES_OWNER', 'mlocati');
+	define('C5TT_GITHUB_PACKAGES_OWNER', 'concrete5');
 }
 
 if(!defined('C5TT_GITHUB_PACKAGES_REPOSITORY')) {
 	/** GitHub repository for the packages translations.
 	 * @var string
 	 */
-	define('C5TT_GITHUB_PACKAGES_REPOSITORY', 'concrete5-packages');
+	define('C5TT_GITHUB_PACKAGES_REPOSITORY', 'package-translations');
 }
 
 if(!defined('C5TT_GITHUB_PACKAGES_BRANCH_FILES')) {
