@@ -373,7 +373,7 @@ class Package {
 		$all = array();
 		$rs = DB::query('select pHandle, pName, pSourceUrl from C5TTPackage where pDisabled = 0');
 		while($row = $rs->fetch_assoc()) {
-			$all[] = new self($row['pHandle'], $row['pName'], $row['pSourceUrl']);
+			$all[$row['pHandle']] = new self($row['pHandle'], $row['pName'], $row['pSourceUrl']);
 		}
 		$rs->close();
 		Package::$all = $all;
