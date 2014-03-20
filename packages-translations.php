@@ -5,7 +5,9 @@ require_once dirname(__FILE__) . '/includes/startup.php';
 // Let's include the dependencies
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
 require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'tempfolder.php');
-require_once Enviro::mergePath(C5TT_CONFIGPATH, 'packages.php');
+require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'db.php');
+
+Package::readAll();
 
 if(empty(Package::$all)) {
 	throw new Exception('No packages loaded!');
@@ -263,9 +265,6 @@ class Package {
 		if(!strlen($this->name)) {
 			throw new Exception('Field required for package ' . $this->handle . ': $name');
 		}
-		if(!strlen($this->sourceURL)) {
-			throw new Exception('Field required for package ' . $this->handle . ': $sourceURL');
-		}
 		if(array_key_exists($this->handle, self::$all)) {
 			throw new Exception('Duplicated package handle: ' . $this->handle);
 		}
@@ -369,6 +368,15 @@ class Package {
 		unset($tempFolder);
 		Enviro::write("done.\n");
 		return true;
+	}
+	public static function readAll() {
+		$all = array();
+		$rs = DB::query('select pHandle, pName, pSourceUrl from C5TTPackage where pDisabled = 0');
+		while($row = $rs->fetch_assoc()) {
+			$all[] = new self($row['pHandle'], $row['pName'], $row['pSourceUrl']);
+		}
+		$rs->close();
+		Package::$all = $all;
 	}
 }
 
