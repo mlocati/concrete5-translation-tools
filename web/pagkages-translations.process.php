@@ -85,14 +85,14 @@ switch($action = Request::getString('action', true)) {
 			$dbFields['pDisabled'] = ($inDB < 0) ? '1' : '0';
 			foreach($dbFields as $k => $v) {
 				if(!strlen($sql)) {
-					$sql = $editing ? 'update C5TTPackage set ' : 'insert into C5TTPackage set ';
+					$sql = ($editing && strlen($editing->pNameDB)) ? 'update C5TTPackage set ' : 'insert into C5TTPackage set ';
 				}
 				else {
 					$sql .= ', ';
 				}
 				$sql .= "$k = $v";
 			}
-			if($editing) {
+			if($editing && strlen($editing->pNameDB)) {
 				$sql .= ' where pHandle = ' . DB::escape($editing->pHandle) . ' limit 1';
 			}
 		}
