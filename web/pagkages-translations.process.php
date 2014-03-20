@@ -106,8 +106,10 @@ switch($action = Request::getString('action', true)) {
 		}
 		else {
 			$txData['name'] = Request::postString('name', true);
-			if($editing && strlen($editing->pNameTX) && strcasecmp($txData['name'], $editing->pNameTX)) {
-				$txOperation = 'UPDATE';
+			if($editing && strlen($editing->pNameTX)) {
+				if(strcasecmp($txData['name'], $editing->pNameTX)) {
+					$txOperation = 'UPDATE';
+				}
 			}
 			else {
 				$txOperation = 'CREATE';
