@@ -101,9 +101,11 @@ class Transifexer {
 			if(!@curl_setopt($hCurl, CURLOPT_BINARYTRANSFER, true)) {
 				throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 			}
+			/* curl_setopt(): CURLOPT_FOLLOWLOCATION cannot be activated when an open_basedir is set
 			if(!@curl_setopt($hCurl, CURLOPT_FOLLOWLOCATION, true)) {
 				throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 			}
+			*/
 			if(!@curl_setopt($hCurl, CURLOPT_HEADER, false)) {
 				throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 			}
