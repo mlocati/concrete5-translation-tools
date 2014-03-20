@@ -1,5 +1,4 @@
 <?php
-define('C5TT_NOTIFYERRORS', false);
 require_once dirname(__FILE__) . '/includes/startup.php';
 
 // Let's include the dependencies
