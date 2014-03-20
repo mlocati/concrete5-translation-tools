@@ -1,0 +1,51 @@
+body {
+	padding-top: 60px;
+}
+
+.loggedin-yes, .loggedin-no {
+	display: none;
+}
+
+#working {
+	cursor: wait;
+	position: fixed;
+	left: 0;
+	width: 100%;
+	top: 0;
+	height: 100%;
+	z-index: 32500;
+	background-color:rgba(255, 255, 255, .4);
+}
+#working>div {
+	left: 50%;
+	top: 50%;
+	position:absolute;
+}
+#working>div>div {
+	position: relative;
+	left: -50%;
+	top: -50%;
+}
+#working-text {
+	max-width: 350px;
+	text-align: center;
+}
+
+#packages thead th {
+	text-align: center;
+}
+#packages thead th:first-child {
+	text-align: left;
+}
+#packages tbody td {
+	text-align: center;
+}
+#packages tbody td:first-child {
+	text-align: left;
+}
+
+#packages-list {
+	width: auto;
+	margin-left: auto;
+	margin-right: auto;
+}

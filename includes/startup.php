@@ -23,6 +23,21 @@ register_shutdown_function('executionDone');
 * @param string $trace The call stack to the error location.
  */
 function stopForError($description, $code = null, $file = '', $line = null, $trace = '') {
+	if(defined('C5TT_IS_WEB') && C5TT_IS_WEB) {
+		$level = @ob_get_level();
+		while(is_int($level) && ($level > 0)) {
+			@ob_end_clean();
+			$newLevel = @ob_get_level();
+			if((!is_int($newLevel)) || ($newLevel >= $level)) {
+				break;
+			}
+			$level = $newLevel;
+		}
+		header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', true, 400);
+		header('Content-Type: text/plain; charset=UTF-8', true);
+		echo $description;
+		die();
+	}
 	$text = '';
 	$text .= "$description\n";
 	if(!empty($code)) {

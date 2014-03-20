@@ -60,10 +60,11 @@ class Transifexer {
 	* @param string $query The Transifex url to query (without host).
 	* @param array|null $postData The data to post (null for a GET operation).
 	* @param bool $decodeJSON [default: true] Do we have to decode the result considering it as json?
+	* @param string $operation [default: auto] Specify a special operation ('PUT' or 'DELETE')
 	* @return mixed
 	* @throws TransifexerException Throws a TransifexerException in case of errors.
 	*/
-	protected function query($query, $postData = null, $decodeJSON = true) {
+	protected function query($query, $postData = null, $decodeJSON = true, $operation = '') {
 		global $php_errormsg;
 		if(!function_exists('curl_init')) {
 			throw TransifexerException::getByCode(TransifexerException::CURL_NOT_INSTALLED);
@@ -110,10 +111,15 @@ class Transifexer {
 				if(!@curl_setopt($hCurl, CURLOPT_POST, true)) {
 					throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 				}
-				if(!@curl_setopt($hCurl, CURLOPT_HTTPHEADER, array('Content-Type: application/json; charset=utf-8'))) {
+				if(!@curl_setopt($hCurl, CURLOPT_HTTPHEADER, array('Content-Type: application/json'))) {
 					throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 				}
 				if(!@curl_setopt($hCurl, CURLOPT_POSTFIELDS, json_encode($postData))) {
+					throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
+				}
+			}
+			if(strlen($operation)) {
+				if(!@curl_setopt($hCurl, CURLOPT_CUSTOMREQUEST, $operation)) {
 					throw TransifexerException::getByCode(TransifexerException::CURL_SETOPT_FAILED);
 				}
 			}
@@ -154,7 +160,7 @@ class Transifexer {
 				throw TransifexerException::getByCode(TransifexerException::JSON_DECODE_NOT_AVAILABLE);
 			}
 			$jd = @json_decode($response, true);
-			if($jd === false) {
+			if(is_null($jd)) {
 				throw TransifexerException::getByCode(TransifexerException::JSON_DECODE_FAILED);
 			}
 			$response = $jd;
@@ -353,6 +359,62 @@ class Transifexer {
 		catch(Exception $x) {
 			throw $initialException ? $initialException : $x;
 		}
+	}
+	/** Updates an existing resource.
+	* @param string $projectSlug The Transifex project slug.
+	* @param string $resourceSlug The Transifex resource slug.
+	* @param array $data The data of the new resource. It's an array with these keys:<ul>
+	*	<li>string <b>name</b> [required] The new resource name.</li>
+	*	<li>bool <b>accept_translations</b> [optional] Does the resource accept translations?</li>
+	*	<li>string <b>category</b> [optional] The category of the new resource.</li>
+	* </ul>
+	* </ul>
+	* @return array Returns the same result as of getResourceInfo() with detaled informations.
+	* @throws TransifexerException Throws a TransifexerException in case of errors.
+	*/
+	public function updateResource($projectSlug, $resourceSlug, $data) {
+		if(!preg_match('#^[\w\-]+$#', $projectSlug)) {
+			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+		}
+		if(!preg_match('#^[\w\-]+$#', $resourceSlug)) {
+			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+		}
+		if(isset($data['accept_translations'])) {
+			$data['accept_translations'] = $data['accept_translations'] ? '1' : '0';
+		}
+		$initialException = null;
+		try {
+			$this->query("project/$projectSlug/resource/$resourceSlug/", $data, false, 'PUT');
+		}
+		catch(TransifexerException $x) {
+			if(($x->getCode() == TransifexerException::UNEXPECTED_TRANSFER_ERROR) && (strpos($x->getMessage(), 'Error 500 in response from Transifex') === 0)) {
+				$initialException = $x;
+			}
+			else {
+				throw $x;
+			}
+		}
+		try {
+			return $this->getResourceInfo($projectSlug, $resourceSlug, true);
+		}
+		catch(Exception $x) {
+			throw $initialException ? $initialException : $x;
+		}
+	}
+	/** Deletes an existing resource.
+	 * @param string $projectSlug The Transifex project slug.
+	 * @param string $resourceSlug The Transifex resource slug.
+	 * @throws TransifexerException Throws a TransifexerException in case of errors.
+	 */
+	public function deleteResource($projectSlug, $resourceSlug) {
+		if(!preg_match('#^[\w\-]+$#', $projectSlug)) {
+			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+		}
+		if(!preg_match('#^[\w\-]+$#', $resourceSlug)) {
+			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+		}
+		$initialException = null;
+		$this->query("project/$projectSlug/resource/$resourceSlug/", null, false, 'DELETE');
 	}
 	/** Pulls data from Transifex into a local folder (using the tx command).
 	* @param string $projectSlug The Transifex project slug.
