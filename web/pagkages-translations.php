@@ -25,7 +25,10 @@ if(!@ini_get('session.auto_start')) {
 				<span class="icon-bar"></span>
 				<span class="icon-bar"></span>
 			</button>
-			<a href="javascript:void(0)" class="navbar-brand">concrete5 translatable packages</a>
+			<a href="javascript:void(0)" class="navbar-brand">
+				<span class="hidden-xs">concrete5 translatable packages</span>
+				<span class="visible-xs">c5 translatable packages</span>
+			</a>
 		</div>
 		<div class="collapse navbar-collapse">
 			<ul class="nav navbar-nav loggedin-yes">
