@@ -154,6 +154,12 @@ Package.edit.updateStatus = function(speed) {
 			$('#package-save').hide(speed);
 		}
 	}
+	if(Package.edit.current && Package.edit.current.pNameTX) {
+		$('#package-txview').show();
+	}
+	else {
+		$('#package-txview').hide();
+	}
 };
 Package.edit.save = function() {
 	var pkg = Package.edit.current, send = new FormData(), v;
@@ -372,6 +378,16 @@ $(window.document).ready(function() {
 	});
 	$('input[name="package-in-db"]').on('change', function() {
 		Package.edit.updateStatus('fast');
+	});
+	$('#package-txview').on('click', function() {
+		if(Package.edit.current && Package.edit.current.pNameTX) {
+			var $a;
+			$(window.document.body).append($a = $('<a target="_blank"/> ')
+				.attr('href', 'https://www.transifex.com/projects/p/concrete5-packages/resource/' + Package.edit.current.pHandle + '/')
+			);
+			$a[0].click();
+			$a.remove();
+		}
 	});
 	$('#modal-package').on('shown.bs.modal', function () {
 		if($('#package-handle').is('[readonly]')) {
