@@ -57,7 +57,7 @@ switch($action = Request::getString('action', true)) {
 		else {
 			$newHandle = Request::postString('handle', true);
 			$newHandle = preg_replace('/\\s+|_+/', '_', strtolower($newHandle));
-			if(!preg_match('/^[a-z]([a-z\\-_]*[a-z])?$/', $newHandle)) {
+			if(!preg_match('/^[a-z]([a-z0-9\\-_]*[a-z0-9])?$/', $newHandle)) {
 				throw new Exception('Invalid handle format');
 			}
 			if($editing && strcasecmp($editing->pHandle, $newHandle)) {
@@ -99,8 +99,8 @@ switch($action = Request::getString('action', true)) {
 				$sql .= ' where pHandle = ' . DB::escape($editing->pHandle) . ' limit 1';
 			}
 		}
-		
 		$txOperation = '';
+		$txUpdatePot = null;
 		$txData = array();
 		if($inTX === false) {
 			if($editing && strlen($editing->pNameTX)) {
@@ -113,6 +113,7 @@ switch($action = Request::getString('action', true)) {
 				if(strcasecmp($txData['name'], $editing->pNameTX)) {
 					$txOperation = 'UPDATE';
 				}
+				$txUpdatePot = Request::file('potfile', false);
 			}
 			else {
 				$txOperation = 'CREATE';
@@ -127,18 +128,23 @@ switch($action = Request::getString('action', true)) {
 			if(strlen($sql)) {
 				DB::query($sql);
 			}
-			if(strlen($txOperation)) {
+			if(strlen($txOperation) || (!is_null($txUpdatePot))) {
 				$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
-				switch($txOperation) {
-					case 'CREATE':
-						$transifexer->createResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $txData);
-						break;
-					case 'UPDATE':
-						$transifexer->updateResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $editing->pHandle, $txData);
-						break;
-					case 'DELETE':
-						$transifexer->deleteResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $editing->pHandle);
-						break;
+				if(strlen($txOperation)) {
+					switch($txOperation) {
+						case 'CREATE':
+							$transifexer->createResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $txData);
+							break;
+						case 'UPDATE':
+							$transifexer->updateResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $editing->pHandle, $txData);
+							break;
+						case 'DELETE':
+							$transifexer->deleteResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $editing->pHandle);
+							break;
+					}
+				}
+				if(!is_null($txUpdatePot)) {
+					$transifexer->updateResourcePot(C5TT_TRANSIFEX_PACKAGES_PROJECT, $editing->pHandle, file_get_contents($txUpdatePot['file']));
 				}
 			}
 			if(strlen($newHandle)) {

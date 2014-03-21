@@ -127,7 +127,7 @@ if(!@ini_get('session.auto_start')) {
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="package-handle" class="col-sm-3 control-label">Initial .pot file</label>
+						<label for="package-potfile" class="col-sm-3 control-label">Initial .pot file</label>
 						<div class="col-sm-9">
 							<input type="file" class="form-control" id="package-potfile" placeholder=".pot file">
 						</div>

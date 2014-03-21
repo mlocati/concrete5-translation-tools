@@ -100,17 +100,38 @@ Package.edit = function(pkg) {
 	$('#modal-package').modal('show');
 };
 Package.edit.updateStatus = function(speed) {
-	if((Package.edit.current && Package.edit.current.pNameTX) || (!$('#package-in-tx').is(':checked'))) {
-		$('#package-potfile')
-			.removeAttr('required')
-			.closest('.form-group').hide(speed)
-		;
+	if(Package.edit.current && Package.edit.current.pNameTX) {
+		if($('#package-in-tx').is(':checked')) {
+			$('#package-potfile')
+				.removeAttr('required')
+				.closest('.form-group')
+					.show(speed)
+			;
+			$('label[for="package-potfile"]').text('Update .pot file');
+		}
+		else {
+			$('#package-potfile')
+				.removeAttr('required')
+				.closest('.form-group')
+					.hide(speed)
+			;
+		}
 	}
 	else {
-		$('#package-potfile')
-			.attr('required', true)
-			.closest('.form-group').show(speed)
-		;
+		if($('#package-in-tx').is(':checked')) {
+			$('label[for="package-potfile"]').text('Initial .pot file');
+			$('#package-potfile')
+				.attr('required', true)
+				.closest('.form-group').show(speed)
+			;
+		}
+		else {
+			$('#package-potfile')
+				.removeAttr('required')
+				.closest('.form-group')
+					.hide(speed)
+			;
+		}
 	}
 	if($('#package-in-db-no').is(':checked')) {
 		$('#package-sourceurl')
@@ -188,13 +209,15 @@ Package.edit.save = function() {
 		if(inDB) {
 			send.append('sourceurl', $.trim($('#package-sourceurl').val()));
 		}
-		if(inTX && ((!pkg) || (!pkg.pNameTX))) {
+		if(inTX) {
 			v = $('#package-potfile');
-			if(!v.val()) {
+			if(v.val()) {
+				send.append('potfile', v[0].files[0]);
+			}
+			else if(!(pkg && pkg.pNameTX)) {
 				$('#package-potfile').focus();
 				return;
 			}
-			send.append('potfile', v[0].files[0]);
 		}
 	}
 	if((inDB === 0) && (!inTX)) {
@@ -387,6 +410,8 @@ $(window.document).ready(function() {
 		}
 	});
 	$('#modal-package').on('shown.bs.modal', function () {
+		var $potfile = $('#package-potfile');
+		$potfile.replaceWith($potfile.clone(true));
 		if($('#package-handle').is('[readonly]')) {
 			$('#package-name').focus();
 		}

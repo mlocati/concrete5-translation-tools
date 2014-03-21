@@ -403,11 +403,36 @@ class Transifexer {
 			throw $initialException ? $initialException : $x;
 		}
 	}
+	/** Updates the .pot file of an existing resource.
+	* @param string $projectSlug The Transifex project slug.
+	* @param string $resourceSlug The Transifex resource slug.
+	* @param string $potFileContent The content of the .pot file.
+	* @throws TransifexerException Throws a TransifexerException in case of errors.
+	* @return array Returns an array with these keys:<ul>
+	*	<li>int <b>strings_added</b></li>
+	*	<li>int <b>strings_updated</b></li>
+	*	<li>int <b>strings_delete</b></li>
+	* </ul>
+	*/
+	public function updateResourcePot($projectSlug, $resourceSlug, $potFileContent) {
+		if(!preg_match('#^[\w\-]+$#', $projectSlug)) {
+			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+		}
+		if(!preg_match('#^[\w\-]+$#', $resourceSlug)) {
+			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
+		}
+		if(!(is_string($potFileContent) && strlen(trim($potFileContent)))) {
+			throw TransifexerException::getByCode(TransifexerException::INVALID_FILE_DATA);
+		}
+		$result = $this->query("project/$projectSlug/resource/$resourceSlug/content/", array('content' => $potFileContent), true, 'PUT');
+		unset($result['redirect']);
+		return $result;
+	}
 	/** Deletes an existing resource.
-	 * @param string $projectSlug The Transifex project slug.
-	 * @param string $resourceSlug The Transifex resource slug.
-	 * @throws TransifexerException Throws a TransifexerException in case of errors.
-	 */
+	* @param string $projectSlug The Transifex project slug.
+	* @param string $resourceSlug The Transifex resource slug.
+	* @throws TransifexerException Throws a TransifexerException in case of errors.
+	*/
 	public function deleteResource($projectSlug, $resourceSlug) {
 		if(!preg_match('#^[\w\-]+$#', $projectSlug)) {
 			throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_COMMAND);
@@ -527,6 +552,10 @@ class TransifexerException extends Exception {
 	* @var int
 	*/
 	const CURL_GETINFO_FAILED = 203;
+	/** Error in a file content
+	* @var int
+	*/
+	const INVALID_FILE_DATA = 250;
 	/** Error code on json_decode() not available
 	* @var int
 	*/
@@ -579,6 +608,8 @@ class TransifexerException extends Exception {
 					return 'The curl_exec() function failed';
 				case self::CURL_GETINFO_FAILED:
 					return 'The curl_getinfo() function failed';
+				case self::INVALID_FILE_DATA:
+					return 'Error in a file content';
 				case self::JSON_DECODE_NOT_AVAILABLE:
 					return 'The json_decode() is not available';
 				case self::JSON_DECODE_FAILED:
@@ -657,15 +688,15 @@ class TransifexerTranslation {
 		foreach($outputLines as $outputLine) {
 			if(preg_match('/(\\d+) translated message/', $outputLine, $match)) {
 				$stats['translated'] = intval($match[1]);
-				$someStats =  true;
+				$someStats = true;
 			}
 			if(preg_match('/(\\d+) untranslated message/', $outputLine, $match)) {
 				$stats['untranslated'] = intval($match[1]);
-				$someStats =  true;
+				$someStats = true;
 			}
 			if(preg_match('/(\\d+) fuzzy translation/', $outputLine, $match)) {
 				$stats['fuzzy'] = intval($match[1]);
-				$someStats =  true;
+				$someStats = true;
 			}
 		}
 		if(!$someStats) {
