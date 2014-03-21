@@ -354,6 +354,7 @@ function loginChanged() {
 }
 
 $(window.document).ready(function() {
+	$('.with-tooltip').tooltip({html: true});
 	if(!window.FormData) {
 		setWorking();
 		window.alert('Unsupported browser.');
