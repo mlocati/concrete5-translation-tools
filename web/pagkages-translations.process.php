@@ -28,6 +28,12 @@ switch($action = Request::getString('action', true)) {
 		unset($_SESSION['user']);
 		$result = true;
 		break;
+	case 'get-transifex-project':
+		if(!array_key_exists('user', $_SESSION)) {
+			throw new Exception('Access denied');
+		}
+		$result = C5TT_TRANSIFEX_PACKAGES_PROJECT;
+		break;
 	case 'get-packages':
 		if(!array_key_exists('user', $_SESSION)) {
 			throw new Exception('Access denied');

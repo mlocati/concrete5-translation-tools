@@ -33,6 +33,7 @@ if(!@ini_get('session.auto_start')) {
 		<div class="collapse navbar-collapse">
 			<ul class="nav navbar-nav loggedin-yes">
 				<li><a href="javascript:void(0)" id="packages-reload">Reload all</a></li>
+				<li><a href="javacript:void(0)" target="_blank" id="transifex-resources-url">Transifex resources</a>
 				<li><a href="javascript:void(0)" id="logout">Logout</a></li>
 			</ul>
 			<div class="navbar-form navbar-right loggedin-yes">

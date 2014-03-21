@@ -328,7 +328,17 @@ function loginChanged() {
 	$('#my-name').text(C5TT.me ? C5TT.me.uName : '');
 	if(C5TT.me) {
 		$('.loggedin-no').hide();
+		$('#transifex-resources-url').closest('li').hide();
 		$('.loggedin-yes').show();
+		process('get-transifex-project', null, false, function(ok, result) {
+			if(ok) {
+				$('#transifex-resources-url')
+					.attr('href', 'https://www.transifex.com/projects/p/' + result + '/resources/')
+					.closest('li')
+						.show()
+				;
+			}
+		});
 		Package.reload();
 	}
 	else {
