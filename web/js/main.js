@@ -12,9 +12,6 @@ function setWorking(html) {
 }
 
 function process(action, data, post, callback) {
-	if(data && (data instanceof FormData)) {
-		
-	}
 	var params = {
 		async: true,
 		cache: false,
@@ -181,7 +178,7 @@ Package.edit.save = function() {
 				return;
 			}
 		}
-		send.append('handle', v); 
+		send.append('handle', v);
 		v = $.trim($('#package-name').val());
 		if(!v) {
 			$('#package-name').val('').focus();
@@ -353,7 +350,7 @@ $(window.document).ready(function() {
 			loginChanged();
 		});
 	});
-	
+
 	$('#logout').on('click', function() {
 		setWorking('Closing session...');
 		process('logout', null, false, function(ok, result) {
