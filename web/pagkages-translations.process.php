@@ -35,6 +35,9 @@ switch($action = Request::getString('action', true)) {
 		$result = Package::getAll();
 		break;
 	case 'save-package':
+		if(!array_key_exists('user', $_SESSION)) {
+			throw new Exception('Access denied');
+		}
 		$editing = null;
 		$s = Request::postString('handleOld', false);
 		if(strlen($s)) {
