@@ -11,7 +11,7 @@ if(!@ini_get('session.auto_start')) {
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="css/bootstrap.min.css">
-<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="<?php echo 'css/main.css?v=' . @filemtime('css/main.css'); ?>">
 </head>
 <body>
 <body>
@@ -173,7 +173,7 @@ var C5TT = {
 	me: <?php echo array_key_exists('user', $_SESSION) ? json_encode($_SESSION['user']) : 'null'; ?>
 };
 </script>
-<script src="js/main.js"></script>
+<script src="<?php echo 'js/main.js?v=' . @filemtime('js/main.js'); ?>"></script>
 
 </body>
 </html>
