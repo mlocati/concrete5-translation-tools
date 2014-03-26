@@ -451,10 +451,21 @@ $(window.document).ready(function() {
 	$('#package-handle')
 		.on('keypress', function(e) {
 			if(!$(this).is('[readonly]')) {
-				switch(String.fromCharCode(e.charCode)) {
+				var s = String.fromCharCode(e.charCode);
+				switch(s) {
 					case '_':
+					case ' ':
+					case '\t'
 						if(setInputText(this, '-')) {
 							e.preventDefault();
+						}
+						break;
+					default:
+						var lc = s.toLowerCase();
+						if(s !== lc) {
+							if(setInputText(this, lc)) {
+								e.preventDefault();
+							}
 						}
 						break;
 				}
@@ -462,7 +473,7 @@ $(window.document).ready(function() {
 		})
 		.on('blur', function() {
 			if(!$(this).is('[readonly]')) {
-				this.value = this.value.replace(/_/g, '-');
+				this.value = $.trim(this.value).replace(/\s+/g, '-').toLowerCase();
 			}
 		})
 	;
