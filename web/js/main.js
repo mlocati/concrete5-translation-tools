@@ -455,7 +455,7 @@ $(window.document).ready(function() {
 				switch(s) {
 					case '_':
 					case ' ':
-					case '\t'
+					case '\t':
 						if(setInputText(this, '-')) {
 							e.preventDefault();
 						}
