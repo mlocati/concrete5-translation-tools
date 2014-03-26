@@ -11,6 +11,20 @@ function setWorking(html) {
 	}
 }
 
+function setInputText(input, text) {
+	try {
+		var p0 = input.selectionStart, p1 = input.selectionEnd;
+		if((typeof(p0) === 'number') && (typeof(p1) === 'number')) {
+			input.value = input.value.substring(0, p0) + text + input.value.substring(p1, input.value.length);
+			input.selectionEnd = input.selectionStart = p0 + text.length;
+			return true;
+		}
+	}
+	catch(e) {
+	}
+	return false;
+}
+
 function process(action, data, post, callback) {
 	var params = {
 		async: true,
@@ -434,6 +448,24 @@ $(window.document).ready(function() {
 		e.preventDefault();
 		Package.edit.save();
 	});
+	$('#package-handle')
+		.on('keypress', function(e) {
+			if(!$(this).is('[readonly]')) {
+				switch(String.fromCharCode(e.charCode)) {
+					case '_':
+						if(setInputText(this, '-')) {
+							e.preventDefault();
+						}
+						break;
+				}
+			}
+		})
+		.on('blur', function() {
+			if(!$(this).is('[readonly]')) {
+				this.value = this.value.replace(/_/g, '-');
+			}
+		})
+	;
 	setWorking();
 	loginChanged();
 });

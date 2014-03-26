@@ -62,8 +62,8 @@ switch($action = Request::getString('action', true)) {
 		}
 		else {
 			$newHandle = Request::postString('handle', true);
-			$newHandle = preg_replace('/\\s+|_+/', '_', strtolower($newHandle));
-			if(!preg_match('/^[a-z]([a-z0-9\\-_]*[a-z0-9])?$/', $newHandle)) {
+			$newHandle = preg_replace('/\\s+|_+/', '-', strtolower($newHandle));
+			if(!preg_match('/^[a-z]([a-z0-9\\-]*[a-z0-9])?$/', $newHandle)) {
 				throw new Exception('Invalid handle format');
 			}
 			if($editing && strcasecmp($editing->pHandle, $newHandle)) {
