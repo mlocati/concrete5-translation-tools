@@ -473,7 +473,7 @@ $(window.document).ready(function() {
 		})
 		.on('blur', function() {
 			if(!$(this).is('[readonly]')) {
-				this.value = $.trim(this.value).replace(/\s+/g, '-').toLowerCase();
+				this.value = $.trim(this.value).replace(/[\s+_]/g, '-').toLowerCase();
 			}
 		})
 	;

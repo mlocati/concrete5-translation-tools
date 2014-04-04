@@ -115,7 +115,7 @@ if(!@ini_get('session.auto_start')) {
 					<div class="form-group">
 						<label for="package-handle" class="col-sm-3 control-label">Handle</label>
 						<div class="col-sm-9">
-							<input type="text" class="form-control" id="package-handle" placeholder="Handle" required maxlength="100" pattern="^[a-z]([a-z\-_]*[a-z])?$">
+							<input type="text" class="form-control" id="package-handle" placeholder="Handle" required maxlength="100" pattern="^[a-z]([a-z0-9\-]*[a-z0-9])?$">
 						</div>
 					</div>
 					<div class="form-group">
