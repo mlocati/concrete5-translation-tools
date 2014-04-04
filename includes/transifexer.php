@@ -148,7 +148,12 @@ class Transifexer {
 					if(strpos($response, 'Unknown language code ') === 0) {
 						throw TransifexerException::getByCode(TransifexerException::INVALID_LANGUAGE);
 					}
-					throw TransifexerException::getByCode(TransifexerException::UNEXPECTED_TRANSFER_ERROR, 'Error ' . $info['http_code'] . ' in response from Transifex');
+					else if((strlen($response) > 0) && (strlen($response) < 300)) {
+						throw TransifexerException::getByCode(TransifexerException::UNEXPECTED_TRANSFER_ERROR, $response);
+					}
+					else {
+						throw TransifexerException::getByCode(TransifexerException::UNEXPECTED_TRANSFER_ERROR, 'Error ' . $info['http_code'] . ' in response from Transifex');
+					}
 				case 401:
 					throw TransifexerException::getByCode(TransifexerException::TRANSIFEX_BAD_LOGIN);
 				case 404:
