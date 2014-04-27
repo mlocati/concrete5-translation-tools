@@ -59,7 +59,7 @@
 //define('C5TT_TRANSIFEXRESOURCE_DEV', 'core');
 
 // The map from concrete5 version to Transifex resource (in JSON format).
-//define('C5TT_TRANSIFEXRESOURCE_VMAP', '{"core-562": ["5.6.2"], "core-5621": ["5.6.2.1"], "core-563": ["5.6.3"]}');
+//define('C5TT_TRANSIFEXRESOURCE_VMAP', '{"core-562": ["5.6.2"], "core-5621": ["5.6.2.1"], "core-563": ["5.6.3", "5.6.3.1"]}');
 
 // The Transifex project name for packages translations.
 //define('C5TT_TRANSIFEX_PACKAGES_PROJECT', 'concrete5-packages');
