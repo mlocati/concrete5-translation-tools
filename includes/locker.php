@@ -18,7 +18,7 @@ class Locker {
 		$folder = dirname($filename);
 		if(!is_dir($folder)) {
 			@mkdir($folder, 0777, true);
-			if(!is_dir(dirname(C5TT_LOCKFILE))) {
+			if(!is_dir($folder)) {
 				throw new Exception("Unable to create the directory '$folder' for the lock file '$filename'.");
 			}
 		}
