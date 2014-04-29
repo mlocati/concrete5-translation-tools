@@ -8,19 +8,10 @@ class DB {
 	private static function getConnection() {
 		static $cn;
 		if(!isset($cn)) {
-			if(!defined('C5TT_DB_SERVER')) {
-				throw new Exception('C5TT_DB_SERVER not defined');
+			if(!strlen(C5TTConfiguration::$database)) {
+				throw new Exception('C5TTConfiguration::$database not set');
 			}
-			if(!defined('C5TT_DB_DATABASE')) {
-				throw new Exception('C5TT_DB_DATABASE not defined');
-			}
-			if(!defined('C5TT_DB_USERNAME')) {
-				throw new Exception('C5TT_DB_USERNAME not defined');
-			}
-			if(!defined('C5TT_DB_PASSWORD')) {
-				throw new Exception('C5TT_DB_PASSWORD not defined');
-			}
-			$c = @new mysqli(C5TT_DB_SERVER, C5TT_DB_USERNAME, C5TT_DB_PASSWORD, C5TT_DB_DATABASE);
+			$c = @new mysqli(C5TTConfiguration::$database->host, C5TTConfiguration::$database->name, C5TTConfiguration::$database->username, C5TTConfiguration::$database->password);
 			if($c->connect_errno) {
 				throw new Exception('Database connection error: ' . $c->connect_error);
 			}

@@ -2,9 +2,9 @@
 require_once dirname(__FILE__) . '/includes/startup.php';
 
 // Let's include the dependencies
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'tempfolder.php');
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'db.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'transifexer.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'tempfolder.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'db.php');
 
 Package::readAll();
 
@@ -12,12 +12,12 @@ if(empty(Package::$all)) {
 	throw new Exception('No packages loaded!');
 }
 
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'gitter.php');
-$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'transifexer.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'gitter.php');
+$transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
 
 // Let's pull all the Transifex data
-$transifexer->pull(C5TT_TRANSIFEX_PACKAGES_PROJECT, C5TT_TRANSIFEX_PACKAGES_WORKPATH);
+$transifexer->pull(C5TTConfiguration::$transifexPackagesProject, C5TTConfiguration::getTransifexWorkpathPackages());
 
 
 // Let's list the translations
@@ -37,19 +37,19 @@ foreach(Package::$all as $packageHandle => $package) {
 }
 
 // Let's be sure about the destination folder for .zip files
-if(!@is_dir(C5TT_PATH_PACKAGES_TRANSLATIONS)) {
-	@mkdir(C5TT_PATH_PACKAGES_TRANSLATIONS, 0777, true);
-	if(!@is_dir(C5TT_PATH_PACKAGES_TRANSLATIONS)) {
-		throw new Exception('Unable to create the directory ' . C5TT_PATH_PACKAGES_TRANSLATIONS);
+if(!@is_dir(C5TTConfiguration::getPackagesTranslationsPath())) {
+	@mkdir(C5TTConfiguration::getPackagesTranslationsPath(), 0777, true);
+	if(!@is_dir(C5TTConfiguration::getPackagesTranslationsPath())) {
+		throw new Exception('Unable to create the directory ' . C5TTConfiguration::getPackagesTranslationsPath());
 	}
 }
-if(!is_writable(C5TT_PATH_PACKAGES_TRANSLATIONS)) {
-	throw new Exception('Unable write to the directory ' . C5TT_PATH_PACKAGES_TRANSLATIONS);
+if(!is_writable(C5TTConfiguration::getPackagesTranslationsPath())) {
+	throw new Exception('Unable write to the directory ' . C5TTConfiguration::getPackagesTranslationsPath());
 }
 // Let's pull the latest branch version of the repository containing the translations
-$gitter = new Gitter('github.com', C5TT_GITHUB_PACKAGES_OWNER, C5TT_GITHUB_PACKAGES_REPOSITORY, C5TT_GITHUB_PACKAGES_BRANCH_WEB, C5TT_GITHUB_PACKAGES_WORKPATH, true);
+$gitter = new Gitter(C5TTConfiguration::$gitPackages->host, C5TTConfiguration::$gitPackages->owner, C5TTConfiguration::$gitPackages->repository, C5TTConfiguration::$gitPackagesBranchWeb, C5TTConfiguration::$gitPackages->getWorkPath(), true);
 $gitter->pullOrInitialize();
-$gitter->changeBranch(C5TT_GITHUB_PACKAGES_BRANCH_FILES);
+$gitter->changeBranch(C5TTConfiguration::$gitPackagesBranchFiles);
 $gitter->pullOrInitialize();
 
 $timestamp = time();
@@ -69,7 +69,7 @@ foreach(Package::$all as /* @var $package Package */$package) {
 	if($package->process($moTempFolder)) {
 		$jsPackage['locales'] = $package->translatedLocales;
 		$newMoFiles[] = $package->moFile;
-		$ghFolder = Enviro::mergePath(C5TT_GITHUB_PACKAGES_WORKPATH, $package->handle);
+		$ghFolder = Enviro::mergePath(C5TTConfiguration::$gitPackages->getWorkPath(), $package->handle);
 		if(!is_dir($ghFolder)) {
 			@mkdir($ghFolder);
 			if(!is_dir($ghFolder)) {
@@ -141,10 +141,10 @@ foreach(Package::$all as /* @var $package Package */$package) {
 	}
 	$jsPackages[] = $jsPackage;
 }
-$hDir = @opendir(C5TT_GITHUB_PACKAGES_WORKPATH);
+$hDir = @opendir(C5TTConfiguration::$gitPackages->getWorkPath());
 while(($item = readdir($hDir)) !== false) {
 	if(strpos($item, '.') !== 0) {
-		$fullPath = Enviro::mergePath(C5TT_GITHUB_PACKAGES_WORKPATH, $item);
+		$fullPath = Enviro::mergePath(C5TTConfiguration::$gitPackages->getWorkPath(), $item);
 		if(is_dir($fullPath)) {
 			if((!array_key_exists($item, Package::$all)) || in_array($item, $packagesWithoutTranslations)) {
 				Enviro::deleteFolder($fullPath);
@@ -154,7 +154,7 @@ while(($item = readdir($hDir)) !== false) {
 	}
 }
 closedir($hDir);
-$zipFolder = Enviro::mergePath(C5TT_PATH_PACKAGES_TRANSLATIONS, $timestamp);
+$zipFolder = Enviro::mergePath(C5TTConfiguration::getPackagesTranslationsPath(), $timestamp);
 @mkdir($zipFolder);
 if(!is_dir($zipFolder)) {
 	throw new Exception('Unable to create the directory ' . $zipFolder);
@@ -216,9 +216,9 @@ else {
 	$filesChanged = false;
 }
 
-$gitter->changeBranch(C5TT_GITHUB_PACKAGES_BRANCH_WEB);
+$gitter->changeBranch(C5TTConfiguration::$gitPackagesBranchWeb);
 
-$jsFolder = Enviro::mergePath(C5TT_GITHUB_PACKAGES_WORKPATH, 'js');
+$jsFolder = Enviro::mergePath(C5TTConfiguration::$gitPackages->getWorkPath(), 'js');
 if(!is_dir($jsFolder)) {
 	if(@mkdir($jsFolder))
 	if(!is_dir($jsFolder)) {
@@ -267,7 +267,7 @@ class Package {
 		if(array_key_exists($this->handle, self::$all)) {
 			throw new Exception('Duplicated package handle: ' . $this->handle);
 		}
-		$this->txDirectory = Enviro::mergePath(C5TT_TRANSIFEX_PACKAGES_WORKPATH, 'translations', C5TT_TRANSIFEX_PACKAGES_PROJECT . '.' . $this->handle);
+		$this->txDirectory = Enviro::mergePath(C5TTConfiguration::getTransifexWorkpathPackages(), 'translations', C5TTConfiguration::$transifexPackagesProject . '.' . $this->handle);
 		self::$all[$this->handle] = $this;
 	}
 	/** Process package translations
@@ -381,13 +381,13 @@ class Package {
 
 function getTranslationHandles() {
 	$result = array();
-	$hDir = @opendir(Enviro::mergePath(C5TT_TRANSIFEX_PACKAGES_WORKPATH, 'translations'));
+	$hDir = @opendir(Enviro::mergePath(C5TTConfiguration::getTransifexWorkpathPackages(), 'translations'));
 	if($hDir === false) {
 		throw new Exception('Failed to list the Transifex translations');
 	}
 	while(($item = @readdir($hDir)) !== false) {
-		if(is_dir(Enviro::mergePath(C5TT_TRANSIFEX_PACKAGES_WORKPATH, 'translations', $item))) {
-			if(preg_match('/^' . C5TT_TRANSIFEX_PACKAGES_PROJECT . '\\.(.+)$/', $item, $m)) {
+		if(is_dir(Enviro::mergePath(C5TTConfiguration::getTransifexWorkpathPackages(), 'translations', $item))) {
+			if(preg_match('/^' . C5TTConfiguration::$transifexPackagesProject . '\\.(.+)$/', $item, $m)) {
 				$result[] = $m[1];
 			}
 		}
@@ -398,12 +398,12 @@ function getTranslationHandles() {
 
 function deleteOldZipFolders() {
 	$oldDirs = array();
-	if(!($hDir = @opendir(C5TT_PATH_PACKAGES_TRANSLATIONS))) {
-		throw new Exception('Error reading from ' . C5TT_PATH_PACKAGES_TRANSLATIONS);
+	if(!($hDir = @opendir(C5TTConfiguration::getPackagesTranslationsPath()))) {
+		throw new Exception('Error reading from ' . C5TTConfiguration::getPackagesTranslationsPath());
 	}
 	try {
 		while(($item = @readdir($hDir)) !== false) {
-			if(preg_match('/^\\d{9,11}$/', $item) && is_dir(Enviro::mergePath(C5TT_PATH_PACKAGES_TRANSLATIONS, $item))) {
+			if(preg_match('/^\\d{9,11}$/', $item) && is_dir(Enviro::mergePath(C5TTConfiguration::getPackagesTranslationsPath(), $item))) {
 				$oldDirs[] = $item;
 			}
 		}
@@ -415,7 +415,7 @@ function deleteOldZipFolders() {
 	@closedir($hDir);
 	usort($oldDirs, 'sortOldZipFolders');
 	for($i = 0; $i < count($oldDirs) - 2; $i++) {
-		Enviro::deleteFolder(Enviro::mergePath(C5TT_PATH_PACKAGES_TRANSLATIONS, $oldDirs[$i]));
+		Enviro::deleteFolder(Enviro::mergePath(C5TTConfiguration::getPackagesTranslationsPath(), $oldDirs[$i]));
 	}
 }
 function sortOldZipFolders($a, $b) {

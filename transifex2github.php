@@ -1,23 +1,23 @@
 <?php
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'startup.php';
+require_once dirname(__FILE__) . '/includes/startup.php';
 
 // Some initialization
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'gitter.php');
-$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'transifexer.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'gitter.php');
+$transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
 
 // Let's pull all the Transifex data
-$transifexer->pull(C5TT_TRANSIFEX_PROJECT, C5TT_TRANSIFEX_WORKPATH);
+$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpath());
 
 // Let's list all the .po files
 Enviro::write("Looking for downloaded for .po files... ");
-$translations = TransifexerTranslation::getAll(C5TT_TRANSIFEX_WORKPATH);
+$translations = TransifexerTranslation::getAll(C5TTConfiguration::getTransifexWorkpath());
 if(empty($translations)) {
 	throw new Exception('No translations found');
 }
 foreach($translations as $translationIndex => $translation) {
-	if(strcasecmp($translation->projectSlug, C5TT_TRANSIFEX_PROJECT) !== 0) {
-		throw new Exception("The translation {$translation->getName()} is not for the project " . C5TT_TRANSIFEX_PROJECT . ".");
+	if(strcasecmp($translation->projectSlug, C5TTConfiguration::$transifexProject) !== 0) {
+		throw new Exception("The translation {$translation->getName()} is not for the project " . C5TTConfiguration::$transifexProject . ".");
 	}
 }
 Enviro::write("done (" . count($translations) . " translations found)\n");
@@ -31,7 +31,7 @@ foreach($translations as $translationIndex => $translation) {
 }
 
 // Let's pull the latest branch version of the repository containing the translations
-$gitter = new Gitter('github.com', C5TT_GITHUB_LANGCOPY_OWNER, C5TT_GITHUB_LANGCOPY_REPOSITORY, C5TT_GITHUB_LANGCOPY_BRANCH, C5TT_GITHUB_LANGCOPY_WORKPATH, true);
+$gitter = new Gitter(C5TTConfiguration::$langcopyBranch->host, C5TTConfiguration::$langcopyBranch->owner, C5TTConfiguration::$langcopyBranch->repository, C5TTConfiguration::$langcopyBranch->branch, C5TTConfiguration::$langcopyBranch->getWorkPath(), true);
 $gitter->pullOrInitialize();
 
 // Let's check if some translations has changed: if so let's copy the .po and .mo files to the repository.
@@ -46,12 +46,12 @@ foreach($translations as $translation) {
 		$changedAllTranslations[$translation->resourceSlug] = true;
 	}
 	Enviro::write("Checking changes for {$translation->getName()}... ");
-	$gitFolder = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, $translation->resourceSlug);
+	$gitFolder = Enviro::mergePath(C5TTConfiguration::$langcopyBranch->getWorkPath(), $translation->resourceSlug);
 	$gitPo = Enviro::mergePath($gitFolder, $translation->languageCode . '.po');
 	if($translation->detectChanges($gitPo)) {
 		$translation->copyTo($gitFolder, $translation->languageCode);
 		Enviro::write("CHANGED!\n");
-		$changedTranslations[$translation->resourceSlug][] =  $translation->languageCode;
+		$changedTranslations[$translation->resourceSlug][] = $translation->languageCode;
 		$changedTranslationsCount++;
 	}
 	else {
@@ -62,7 +62,7 @@ foreach($translations as $translation) {
 
 // Let's check for translations under GitHub but not under Transifex (they have been removed).
 $gitResources = array();
-foreach(new DirectoryIterator(C5TT_GITHUB_LANGCOPY_WORKPATH) as $iResource) {
+foreach(new DirectoryIterator(C5TTConfiguration::$langcopyBranch->getWorkPath()) as $iResource) {
 	if($iResource->isDot()) {
 		continue;
 	}
@@ -119,7 +119,7 @@ if($changedTranslationsCount > 0) {
 		$resources[$translation->resourceSlug][$translation->languageCode] = $translationStats[$translationIndex];
 	}
 	$xDoc = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><stats></stats>');
-	$xDoc->addAttribute('project', C5TT_TRANSIFEX_PROJECT);
+	$xDoc->addAttribute('project', C5TTConfiguration::$transifexProject);
 	$xDoc->addAttribute('updated', $now);
 	foreach($resources as $resourceSlug => $languages) {
 		$resourceNode = $xDoc->addChild('resource');
@@ -136,16 +136,16 @@ if($changedTranslationsCount > 0) {
 	}
 	$dom = dom_import_simplexml($xDoc);
 	$dom->ownerDocument->formatOutput = true;
-	$statsFile = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, 'stats-current.xml');
+	$statsFile = Enviro::mergePath(C5TTConfiguration::$langcopyBranch->getWorkPath(), 'stats-current.xml');
 	if(!($hStats = @fopen($statsFile, 'wb'))) {
 		throw new Exception("Error opening '$statsFile' for writing.");
 	}
 	fwrite($hStats, $dom->ownerDocument->saveXML());
 	fclose($hStats);
 	Enviro::write("done.\n");
-	
+
 	Enviro::write("Creating/updating historical statistic files...");
-	$historyFile = Enviro::mergePath(C5TT_GITHUB_LANGCOPY_WORKPATH, 'stats-history.xml');
+	$historyFile = Enviro::mergePath(C5TTConfiguration::$langcopyBranch->getWorkPath(), 'stats-history.xml');
 	$xDoc = null;
 	if(is_file($historyFile)) {
 		$xDoc = @simplexml_load_string(@preg_replace('/>\s+/', '>', @file_get_contents($historyFile)));
@@ -160,14 +160,14 @@ if($changedTranslationsCount > 0) {
 	}
 	$xProject = null;
 	foreach($xDoc->children() as $x) {
-		if(($x->getName() == 'project') && isset($x['name']) && (C5TT_TRANSIFEX_PROJECT === (string)$x['name'])) {
+		if(($x->getName() == 'project') && isset($x['name']) && (C5TTConfiguration::$transifexProject === (string)$x['name'])) {
 			$xProject = $x;
 			break;
 		}
 	}
 	if(!$xProject) {
 		$xProject = $xDoc->addChild('project');
-		$xProject->addAttribute('name', C5TT_TRANSIFEX_PROJECT);
+		$xProject->addAttribute('name', C5TTConfiguration::$transifexProject);
 	}
 	$latest = array();
 	foreach($xProject->xpath('./stats') as $xStats) {
@@ -251,7 +251,7 @@ if($changedTranslationsCount > 0) {
 	else {
 		Enviro::write("done (no change).\n");
 	}
-	
+
 	// Let's commit and push the repository.
 	$resourceMessages = array();
 	foreach($allResourceSlugs as $resourceSlug) {
@@ -267,7 +267,7 @@ if($changedTranslationsCount > 0) {
 		$resourceMessages[] = "$resourceSlug ($resourceMessage)";
 	}
 	$commitMessage = 'Updated: ' . implode('; ', $resourceMessages);
-	$gitter->commit($commitMessage, C5TT_GITHUB_LANGCOPY_AUTHORS);
+	$gitter->commit($commitMessage, implode('|', C5TTConfiguration::$langcopyAuthors));
 }
 
 if(count($removedTranslations) > 0) {
@@ -280,6 +280,6 @@ if(count($removedTranslations) > 0) {
 		}
 		$commitNames[] = $removedTranslation['resource'] . '/' . $removedTranslation['language'];
 	}
-	$gitter->commit('Removed languages: ' . implode(', ', $commitNames), C5TT_GITHUB_LANGCOPY_AUTHORS);
+	$gitter->commit('Removed languages: ' . implode(', ', $commitNames), implode('|', C5TTConfiguration::$langcopyAuthors));
 }
 $gitter->push();

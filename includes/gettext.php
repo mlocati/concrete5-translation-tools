@@ -80,7 +80,7 @@ class Gettext {
 		if($merge) {
 			$properties = array_merge($current['properties'], $properties);
 		}
-		require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'tempfolder.php');
+		require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'tempfolder.php');
 		$tempFolder = TempFolder::getDefault();
 		$tempFile = $tempFolder->getNewFile();
 		if(!($hFile = @fopen($tempFile, 'wb'))) {

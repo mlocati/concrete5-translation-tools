@@ -21,55 +21,57 @@ register_shutdown_function('executionDone');
 * @param string $file The file where the error occurred.
 * @param int|null $line The line where the error occurred.
 * @param string $trace The call stack to the error location.
- */
+*/
 function stopForError($description, $code = null, $file = '', $line = null, $trace = '') {
-	if(defined('C5TT_IS_WEB') && C5TT_IS_WEB) {
-		$level = @ob_get_level();
-		while(is_int($level) && ($level > 0)) {
-			@ob_end_clean();
-			$newLevel = @ob_get_level();
-			if((!is_int($newLevel)) || ($newLevel >= $level)) {
-				break;
-			}
-			$level = $newLevel;
-		}
-		header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', true, 400);
-		header('Content-Type: text/plain; charset=UTF-8', true);
-		echo $description;
-		die();
-	}
-	$text = '';
-	$text .= "$description\n";
-	if(!empty($code)) {
-		$text .= "CODE : $code\n";
-	}
-	if(strlen($file)) {
-		$text .= "FILE : $file\n";
-	}
-	if(!empty($line)) {
-		$text .= "LINE : $line\n";
-	}
-	if(strlen($trace)) {
-		$text .= "TRACE:\n$trace\n";
-	}
-	$stderr = fopen('php://stderr', 'wb');
-	fwrite($stderr, $text);
-	fflush($stderr);
-	fclose($stderr);
-	if(((!defined('C5TT_NOTIFYERRORS')) || C5TT_NOTIFYERRORS) && defined('C5TT_NOTIFYERRORS_TO') && strlen(C5TT_NOTIFYERRORS_TO)) {
-		$headers = array();
-		$headers[] = 'From: ' . C5TT_EMAILSENDERADDRESS;
-		$subject = 'concrete5 translation tools error';
-		global $argv;
-		if(isset($argv) && is_array($argv) && count($argv)) {
-			$subject .= " ({$argv[0]})";
-		}
-		mail(C5TT_NOTIFYERRORS_TO, $subject, $text, implode("\r\n", $headers));
-	}
-	if(class_exists('Locker')) {
+	if(class_exists('Locker', false)) {
 		Locker::releaseAll();
 	}
-	die(empty($code) ? 1 : $code);
+	switch(class_exists('C5TTConfiguration', false) ? C5TTConfiguration::$runningEnviro : '') {
+		case 'ajax':
+			$level = @ob_get_level();
+			while(is_int($level) && ($level > 0)) {
+				@ob_end_clean();
+				$newLevel = @ob_get_level();
+				if((!is_int($newLevel)) || ($newLevel >= $level)) {
+					break;
+				}
+				$level = $newLevel;
+			}
+			header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request', true, 400);
+			header('Content-Type: text/plain; charset=UTF-8', true);
+			echo $description;
+			die();
+		default:
+			$text = '';
+			$text .= "$description\n";
+			if(!empty($code)) {
+				$text .= "CODE : $code\n";
+			}
+			if(strlen($file)) {
+				$text .= "FILE : $file\n";
+			}
+			if(!empty($line)) {
+				$text .= "LINE : $line\n";
+			}
+			if(strlen($trace)) {
+				$text .= "TRACE:\n$trace\n";
+			}
+			$stderr = fopen('php://stderr', 'wb');
+			fwrite($stderr, $text);
+			fflush($stderr);
+			fclose($stderr);
+			if(class_exists('C5TTConfiguration', false) && C5TTConfiguration::$notifyErrors && strlen(C5TTConfiguration::$notifyErrorsTo)) {
+				$headers = array();
+				$headers[] = 'From: ' . C5TTConfiguration::$emailSenderAddress;
+				$subject = 'concrete5 translation tools error';
+				global $argv;
+				if(isset($argv) && is_array($argv) && count($argv)) {
+					$subject .= " ({$argv[0]})";
+				}
+				mail(C5TTConfiguration::$notifyErrorsTo, $subject, $text, implode("\r\n", $headers));
+			}
+			die(empty($code) ? 1 : $code);
+	}
 }
 
 /** Catches a php error/warning and raises an exception.
@@ -105,9 +107,15 @@ function executionDone() {
 }
 
 // Let's include
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'configuration.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'enviro.php';
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'locker.php';
+require_once dirname(__FILE__) . '/enviro.php';
+require_once dirname(__FILE__) . '/configuration.php';
 
-// Let's ensure that we run just one concrete5-translation-tools script at a time.
-new Locker(C5TT_LOCKFILE);
+switch(C5TTConfiguration::$runningEnviro) {
+	case 'ajax':
+		break;
+	default:
+		// Let's ensure that we run just one concrete5-translation-tools script at a time.
+		require_once dirname(__FILE__) . '/locker.php';
+		new Locker(C5TTConfiguration::getLockFileName());
+		break;
+}

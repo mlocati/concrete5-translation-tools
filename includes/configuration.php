@@ -1,233 +1,274 @@
 <?php
-/** The root folder of the concrete5 translation tools.
-* @var string
-*/
-define('C5TT_ROOTPATH', dirname(dirname(__FILE__)));
-
-/** The folder containing the include files.
-* @var string
-*/
-define('C5TT_INCLUDESPATH', dirname(__FILE__));
-
-/** The folder containing the include files.
-* @var string
-*/
-define('C5TT_CONFIGPATH', C5TT_ROOTPATH . DIRECTORY_SEPARATOR . 'configuration');
-
-if(!is_file(C5TT_CONFIGPATH . DIRECTORY_SEPARATOR . 'credentials.php')) {
-	throw new Exception('Missing credentials.php file.');
-}
-require_once C5TT_CONFIGPATH . DIRECTORY_SEPARATOR . 'credentials.php';
-
-if(is_file(C5TT_CONFIGPATH . DIRECTORY_SEPARATOR . 'customize.php')) {
-	require_once C5TT_CONFIGPATH . DIRECTORY_SEPARATOR . 'customize.php';
-}
-
-if(!defined('C5TT_WORKPATH')) {
-	/** The folder containing the working files/directories.
+/** Class holding the global configuration variables */
+class C5TTConfiguration {
+	/** About the currently running environment: 'shell', 'ajax'
 	* @var string
 	*/
-	define('C5TT_WORKPATH', C5TT_ROOTPATH . DIRECTORY_SEPARATOR . 'work');
-}
-
-if(!defined('C5TT_TRANSIFEX_HOST')) {
-	/** The Transifex host name.
+	public static $runningEnviro = 'shell';
+	/** The sender email address of outgoing emails
 	* @var string
 	*/
-	define('C5TT_TRANSIFEX_HOST', 'https://www.transifex.com');
-}
-
-if(!defined('C5TT_TRANSIFEX_PROJECT')) {
-	/** The Transifex project name.
+	public static $emailSenderAddress = 'c5tt@localhost';
+	/** Shall we send notification emails on errors?
+	* @var bool
+	*/
+	public static $notifyErrors = true;
+	/** A comma-separated list of email addresses of the recipients of exception notifications
 	* @var string
 	*/
-	define('C5TT_TRANSIFEX_PROJECT', 'concrete5');
-}
-
-if(!defined('C5TT_GITHUB_CORE_OWNER')) {
-	/** GitHub user owning the repository with the concrete5 core.
+	public static $notifyErrorsTo = '';
+	/** The root folder of the concrete5 translation tools
 	* @var string
 	*/
-	define('C5TT_GITHUB_CORE_OWNER', 'concrete5');
-}
-
-if(!defined('C5TT_GITHUB_CORE_REPOSITORY')) {
-	/** GitHub repository for the concrete5 core.
+	public static $rootPath;
+	/** The folder containing the include files
 	* @var string
 	*/
-	define('C5TT_GITHUB_CORE_REPOSITORY', 'concrete5');
-}
-
-if(!defined('C5TT_GITHUB_CORE_BRANCH')) {
-	/** The master branch of the concrete5 core.
+	public static $includesPath;
+	/** The folder containing the working files/directories
 	* @var string
 	*/
-	define('C5TT_GITHUB_CORE_BRANCH', 'master');
-}
-
-if(!defined('C5TT_GITHUB_LANGCOPY_OWNER')) {
-	/** GitHub user owning the repository with the .po/.mo files taken from Transifex.
+	public static $workPath;
+	/** Returns the path to the local copy of the Transifex data for core
 	* @var string
 	*/
-	define('C5TT_GITHUB_LANGCOPY_OWNER', 'concrete5');
-}
-
-if(!defined('C5TT_GITHUB_LANGCOPY_REPOSITORY')) {
-	/** The GitHub repository name that contains the .po/.mo files taken from Transifex.
+	public static function getTransifexWorkpathCore() {
+		return Enviro::mergePath(self::$workPath, 'transifex-core');
+	}
+	/** Returns the path to the local copy of the Transifex data for packages
 	* @var string
 	*/
-	define('C5TT_GITHUB_LANGCOPY_REPOSITORY', 'concrete5-translations');
-}
-
-if(!defined('C5TT_GITHUB_LANGCOPY_BRANCH')) {
-	/** The branch of the GitHub repository that contains the .po/.mo files taken from Transifex.
+	public static function getTransifexWorkpathPackages() {
+		return Enviro::mergePath(self::$workPath, 'transifex-packages');
+	}
+	/** The folder containing the root of the web files
 	* @var string
 	*/
-	define('C5TT_GITHUB_LANGCOPY_BRANCH', 'master');
-}
-
-if(!defined('C5TT_GITHUB_LANGCOPY_AUTHORS')) {
-	/** A pipe-separated list of authors that'll taken randomly when committing.
+	public static $webrootPath = '/var/www/website';
+	/** The Transifex host name
 	* @var string
 	*/
-	define('C5TT_GITHUB_LANGCOPY_AUTHORS', '');
-}
-
-
-if(!defined('C5TT_GITHUB_TOOLS_OWNER')) {
-	/** GitHub user owning the repository with the tools scripts.
+	public static $transifexHost = 'https://www.transifex.com';
+	/** The Transifex username
 	* @var string
 	*/
-	define('C5TT_GITHUB_TOOLS_OWNER', 'mlocati');
-}
-
-if(!defined('C5TT_GITHUB_TOOLS_REPOSITORY')) {
-	/** GitHub repository for the tools scripts.
+	public static $transifexUsername = '';
+	/** The Transifex password
 	* @var string
 	*/
-	define('C5TT_GITHUB_TOOLS_REPOSITORY', 'concrete5-build');
-}
-
-if(!defined('C5TT_GITHUB_TOOLS_BRANCH')) {
-	/** The master branch of the tools scripts.
+	public static $transifexPassword = '';
+	/** The database connection info
+	* @var C5TTConfigurationDB
+	*/
+	public static $database = null;
+	/** Info about development versions of concrete5
+	* @var array[C5TTConfigurationGitC5Dev]
+	*/
+	public static $devBranches = array();
+	/** The Transifex project handle for packages translations
 	* @var string
 	*/
-	define('C5TT_GITHUB_TOOLS_BRANCH', 'master');
-}
-
-if(!defined('C5TT_POT_PATH_FOR_TRANSIFEX')) {
-	/** The location of the .pot file to generate (will be fetched by Transifex).
+	public static $transifexPackagesProject = 'concrete5-packages';
+	/** Info for the the repository with the packages translations
+	* @var C5TTConfigurationGit
+	*/
+	public static $gitPackages;
+	/** The branch of the GitHub repository that contains the packages translations
 	* @var string
 	*/
-	define('C5TT_POT_PATH_FOR_TRANSIFEX', '/var/www/website/core-dev.pot');
-}
-
-if(!defined('C5TT_EMAILSENDERADDRESS')) {
-	/** The sender email address of outgoing emails.
-	 * @var string
-	 */
-	define('C5TT_EMAILSENDERADDRESS', 'c5tt@localhost');
-}
-
-if(!defined('C5TT_NOTIFYERRORS_TO')) {
-	/** A comma-separated list of email addresses of the recipients of exception notifications.
+	public static $gitPackagesBranchFiles = 'master';
+	/** The branch of the GitHub repository that contains the web page for packages translations
 	* @var string
 	*/
-	define('C5TT_NOTIFYERRORS_TO', '');
-}
-
-if(!defined('C5TT_TRANSLATIONRELEASES_FOLDER')) {
-	/** The location of the JavaScript translations info and of the zip files to be downloaded.
+	public static $gitPackagesBranchWeb = 'gh-pages';
+	/** The relative path to the folder where we'll save the package translations
 	* @var string
 	*/
-	define('C5TT_TRANSLATIONRELEASES_FOLDER', '/var/www/website/translation-releases');
-}
-
-if(!defined('C5TT_TRANSIFEXRESOURCE_DEV')) {
-	/** The Transifex resource handle of the latest (development) concrete5 version.
+	public static $packagesTranslationsRelPath = 'packages-translations';
+	/** Returns the absolute path to the folder where we'll save JavaScript translations info and of the zip files to be downloaded
 	* @var string
 	*/
-	define('C5TT_TRANSIFEXRESOURCE_DEV', 'core');
-}
-
-if(!defined('C5TT_TRANSIFEXRESOURCE_VMAP')) {
-	/** The map from Transifex resource to the concrete5 versions (in JSON format).
+	public static function getPackagesTranslationsPath() {
+		return Enviro::mergePath(self::$webrootPath, self::$packagesTranslationsRelPath);
+	}
+	/** The relative path to the folder where we'll save the core translations
 	* @var string
 	*/
-	define('C5TT_TRANSIFEXRESOURCE_VMAP', '{"core-562": ["5.6.2"], "core-5621": ["5.6.2.1"] }');
+	public static $coreTranslationsRelPath = 'translations';
+	/** Returns the absolute path to the folder where we'll save the core translations
+	* @var string
+	*/
+	public static function getCoreTranslationsPath() {
+		return Enviro::mergePath(self::$webrootPath, self::$coreTranslationsRelPath);
+	}
+	/** Info about Transifex resources for released concrete5 versions
+	* @var array[array] Keys: transifex resources, values: list of concrete5 versions
+	*/
+	public static $transifexReleased;
+	/** The repository with the .po/.mo files taken from Transifex
+	* @var C5TTConfigurationGitOneBranch
+	*/
+	public static $langcopyBranch;
+	/** Authors that'll taken randomly when committing to the repository with the .po/.mo files taken from Transifex
+	* @var array[string]
+	*/
+	public static $langcopyAuthors = array();
+	/** The repository with the build scripts
+	* @var C5TTConfigurationGitOneBranch
+	*/
+	public static $buildtoolsBranch;
+	/** Returns the full path to the lock file
+	* @return string
+	*/
+	public static function getLockFileName() {
+		return Enviro::mergePath(self::$workPath, 'c5tt-lockfile');
+	}
+	/** The relative path to the folder where we'll save JavaScript translations info and of the zip files to be downloaded
+	* @var string
+	*/
+	public static $translationreleasesRelPath = 'translation-releases';
+	/** Returns the absolute path to the folder where we'll save JavaScript translations info and of the zip files to be downloaded
+	* @var string
+	*/
+	public static function getTranslationreleasesPath() {
+		return Enviro::mergePath(self::$webrootPath, self::$translationreleasesRelPath);
+	}
+}
+/** Class holding configuratin about a database connection */
+class C5TTConfigurationDB {
+	/** The database server
+	* @var string
+	*/
+	public $host;
+	/** The database name
+	* @var string
+	*/
+	public $name;
+	/** The database username
+	* @var string
+	*/
+	public $username;
+	/** The database password
+	* @var string
+	*/
+	public $password;
+	/** Initializes the instance
+	* @param string $host The database server
+	* @param string $name The database name
+	* @param string $username The database username
+	* @param string $password The database password
+	*/
+	public function __construct($host, $name, $username, $password) {
+		$this->host = $host;
+		$this->name = $name;
+		$this->username = $username;
+		$this->password = $password;
+	}
+}
+/** Class holding configuratin about a git repository */
+class C5TTConfigurationGit {
+	/** User owning the repository
+	* @var string
+	*/
+	public $owner;
+	/** Repository
+	* @var string
+	*/
+	public $repository;
+	/** Host for the repository
+	* @var string
+	*/
+	public $host;
+	/** Initializes the instance
+	* @param string $owner User owning the repository
+	* @param string $repository Repository
+	* @param string $host Host for the repository (defaults to 'github.com')
+	*/
+	public function __construct($owner, $repository, $host = 'github.com') {
+		$this->owner = $owner;
+		$this->repository = $repository;
+		$this->host = $host;
+	}
+	/** Returns the full path to the local copy of the repository/branch
+	* @return string
+	*/
+	public function getWorkPath() {
+		return Enviro::mergePath(C5TTConfiguration::$workPath, "git-{$this->owner}-{$this->repository}");
+	}
+}
+/** Class holding configuratin about a git repository/branch */
+class C5TTConfigurationGitOneBranch extends C5TTConfigurationGit {
+	/** Branch of the repository
+	* @var string
+	*/
+	public $branch;
+	/** Initializes the instance
+	* @param string $owner User owning the repository
+	* @param string $repository Repository
+	* @param string $branch Branch of the repository
+	* @param string $host Host for the repository (defaults to 'github.com')
+	*/
+	public function __construct($owner, $repository, $branch, $host = 'github.com') {
+		parent::__construct($owner, $repository, $host);
+		$this->branch = $branch;
+	}
+	/** Returns the full path to the local copy of the repository/branch
+	* @return string
+	*/
+	public function getWorkPath() {
+		return Enviro::mergePath(C5TTConfiguration::$workPath, "git-{$this->owner}-{$this->repository}-{$this->branch}");
+	}
+}
+/** Represent a git branch of a concrete5 development version */
+class C5TTConfigurationGitC5Dev extends C5TTConfigurationGitOneBranch {
+	/** The Transifex resource handle
+	* @var string
+	*/
+	public $transifexResource;
+	/** The develpment version
+	* @var string
+	*/
+	public $version;
+	/** The path name of the .pot file to generate for this version, relative to C5TTConfiguration::$webrootPath
+	* @var string
+	*/
+	public $potRelPath;
+	/** Initializes the instance
+	* @param string $transifexResource The Transifex resource handle
+	* @param string $version The develpment version
+	* @param string $potPath The full path name of the .pot file to generate for this version
+	* @param string $owner User owning the repository
+	* @param string $repository Repository
+	* @param string $branch Branch of the repository
+	* @param string $host Host for the repository (defaults to 'github.com')
+	*/
+	public function __construct($transifexResource, $version, $potRelPath, $owner, $repository, $branch, $host = 'github.com') {
+		parent::__construct($owner, $repository, $branch, $host);
+		$this->transifexResource = $transifexResource;
+		$this->version = $version;
+		$this->potRelPath = $potRelPath;
+	}
+	/** Retrieves the full path name of the .pot file to generate for this version
+	* @return string
+	*/
+	public function getPotPath() {
+		return Enviro::mergePath(C5TTConfiguration::$webrootPath, $this->potRelPath);
+	}
 }
 
-/** The lock file name.
-* @var string
-*/
-define('C5TT_LOCKFILE', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'c5tt-lockfile');
+C5TTConfiguration::$rootPath = dirname(dirname(__FILE__));
+C5TTConfiguration::$includesPath = dirname(__FILE__);
+C5TTConfiguration::$workPath = Enviro::mergePath(C5TTConfiguration::$rootPath, 'work');
+C5TTConfiguration::$langcopyBranch = new C5TTConfigurationGitOneBranch('concrete5', 'concrete5-translations', 'master');
+C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core', '5.6.x', 'transifex/core-dev-5.6.pot', 'concrete5', 'concrete5', 'master');
+C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-57', '5.7.x', 'transifex/core-dev-5.7.pot', 'concrete5', 'concrete5-5.7.0', 'master');
+C5TTConfiguration::$buildtoolsBranch = new C5TTConfigurationGitOneBranch('mlocati', 'concrete5-build', 'master');
 
-/** The local copy of the Transifex data.
-* @var string
-*/
-define('C5TT_TRANSIFEX_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'transifex');
+C5TTConfiguration::$transifexReleased['core-562'] = array('5.6.2');
+C5TTConfiguration::$transifexReleased['core-5621'] = array('5.6.2.1');
+C5TTConfiguration::$transifexReleased['core-563'] = array('5.6.3', '5.6.3.1');
 
-/** The local folder where the master branch of the concrete5 core is stored.
-* @var string
-*/
-define('C5TT_GITHUB_CORE_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'github-concrete5');
-
-/** The local folder where the GitHub repository that contains the .po/.mo files taken from Transifex is stored.
-* @var string
-*/
-define('C5TT_GITHUB_LANGCOPY_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'github-langcopy');
-
-/** Folder containing a clone of https://github.com/mlocati/concrete5-build.
-* @var string
-*/
-define('C5TT_GITHUB_TOOLS_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'github-tools');
-
-if(!defined('C5TT_TRANSIFEX_PACKAGES_PROJECT')) {
-	/** The Transifex project name for packages translations.
-	 * @var string
-	 */
-	define('C5TT_TRANSIFEX_PACKAGES_PROJECT', 'concrete5-packages');
-}
-
-/** The local copy of the Transifex data for packages translations.
- * @var string
- */
-define('C5TT_TRANSIFEX_PACKAGES_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'transifex-packages');
-/** The local folder where the master branch of the concrete5 core is stored.
- * @var string
- */
-define('C5TT_GITHUB_PACKAGES_WORKPATH', C5TT_WORKPATH . DIRECTORY_SEPARATOR . 'github-packages');
-
-if(!defined('C5TT_GITHUB_PACKAGES_OWNER')) {
-	/** GitHub user owning the repository with the packages translations.
-	 * @var string
-	 */
-	define('C5TT_GITHUB_PACKAGES_OWNER', 'concrete5');
-}
-
-if(!defined('C5TT_GITHUB_PACKAGES_REPOSITORY')) {
-	/** GitHub repository for the packages translations.
-	 * @var string
-	 */
-	define('C5TT_GITHUB_PACKAGES_REPOSITORY', 'package-translations');
-}
-
-if(!defined('C5TT_GITHUB_PACKAGES_BRANCH_FILES')) {
-	/** The branch of the GitHub repository that contains the packages translations.
-	 * @var string
-	 */
-	define('C5TT_GITHUB_PACKAGES_BRANCH_FILES', 'master');
-}
-if(!defined('C5TT_GITHUB_PACKAGES_BRANCH_WEB')) {
-	/** The branch of the GitHub repository that contains the web page for packages translations.
-	 * @var string
-	 */
-	define('C5TT_GITHUB_PACKAGES_BRANCH_WEB', 'gh-pages');
-}
-
-if(!defined('C5TT_PATH_PACKAGES_TRANSLATIONS')) {
-	/** The location where the package translations files will be saved.
-	 * @var string
-	 */
-	define('C5TT_PATH_PACKAGES_TRANSLATIONS', '/var/www/website/packages-translations');
+C5TTConfiguration::$gitPackages = new C5TTConfigurationGit('concrete5', 'package-translations');
+if(is_file(Enviro::mergePath(C5TTConfiguration::$rootPath . '/configuration/customize.php'))) {
+	require Enviro::mergePath(C5TTConfiguration::$rootPath . '/configuration/customize.php');
 }

@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'startup.php';
+require_once dirname(__FILE__) . '/includes/startup.php';
 
 // Let's parse the script arguments
 $args = parseArguments();
@@ -12,20 +12,20 @@ Enviro::run('msgfmt', '--version');
 @set_time_limit(0);
 
 // Some initialization
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'tempfolder.php');
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'gettext.php');
-$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'transifexer.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'tempfolder.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'gettext.php');
+$transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
 
 // Let's get the details of the source resource
 Enviro::write("Retrieving info on the source resource '{$args['source']}'... ");
-$sourceInfo = $transifexer->getResourceInfo(C5TT_TRANSIFEX_PROJECT, $args['source'], true);
+$sourceInfo = $transifexer->getResourceInfo(C5TTConfiguration::$transifexProject, $args['source'], true);
 Enviro::write("done.\n");
 
 // Let's check if the destination resporce exists. If it exists let's get its details
 Enviro::write("Retrieving info on the destination resource '{$args['destination']}'... ");
 try {
-	$destinationInfo = $transifexer->getResourceInfo(C5TT_TRANSIFEX_PROJECT, $args['destination']);
+	$destinationInfo = $transifexer->getResourceInfo(C5TTConfiguration::$transifexProject, $args['destination']);
 }
 catch(TransifexerException $x) {
 	if($x->getCode() == TransifexerException::TRANSIFEX_BAD_COMMAND) {
@@ -50,15 +50,15 @@ else {
 }
 
 // Let's pull all the Transifex data
-$transifexer->pull(C5TT_TRANSIFEX_PROJECT, C5TT_TRANSIFEX_WORKPATH, true);
+$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpath(), true);
 
 // Let's determine the .po files that must be copied from the source resource to the destination resource
 Enviro::write("Listing translations to clone... ");
 $translationsToClone = array();
 $otherProjects = array();
 $otherResources = array();
-foreach(TransifexerTranslation::getAll(C5TT_TRANSIFEX_WORKPATH) as $translation) {
-	if(strcasecmp($translation->projectSlug, C5TT_TRANSIFEX_PROJECT) === 0) {
+foreach(TransifexerTranslation::getAll(C5TTConfiguration::getTransifexWorkpath()) as $translation) {
+	if(strcasecmp($translation->projectSlug, C5TTConfiguration::$transifexProject) === 0) {
 		if(strcasecmp($translation->resourceSlug, $args['source']) === 0) {
 			$translationsToClone[] = $translation;
 		}
@@ -75,7 +75,7 @@ if(empty($translationsToClone)) {
 		$error = "No current translations found with the slug '{$args['source']}'.\nAvailable slugs:\n" . implode("\n", array_keys($otherResources));
 	}
 	elseif(!empty($otherProjects)) {
-		$error = "No resources found for project '" . C5TT_TRANSIFEX_PROJECT . "'.\nAvailable projects::\n" . implode("\n", array_keys($otherProjects));
+		$error = "No resources found for project '" . C5TTConfiguration::$transifexProject . "'.\nAvailable projects::\n" . implode("\n", array_keys($otherProjects));
 	}
 	else {
 		$error = 'No translations found.';
@@ -116,11 +116,11 @@ Enviro::write("\nAll ok!\n");
 if($destinationInfo) {
 	// Destination resource already existing: let's retrieve its .pot file
 	$tempFolder = new TempFolder();
-	$tempTransifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
-	$tempTransifexer->pull(C5TT_TRANSIFEX_PROJECT, $tempFolder->getName(), false, $args['destination'], true);
+	$tempTransifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
+	$tempTransifexer->pull(C5TTConfiguration::$transifexProject, $tempFolder->getName(), false, $args['destination'], true);
 	$potFile = '';
 	foreach(TransifexerTranslation::getAll($tempFolder->getName()) as $tempTranslation) {
-		if(strcasecmp($tempTranslation->projectSlug, C5TT_TRANSIFEX_PROJECT) === 0) {
+		if(strcasecmp($tempTranslation->projectSlug, C5TTConfiguration::$transifexProject) === 0) {
 			if(strcasecmp($tempTranslation->resourceSlug, $args['destination']) === 0) {
 				if(strcasecmp($tempTranslation->languageCode, $destinationInfo['source_language_code']) === 0) {
 					$potFile = $tempTranslation->poPath;
@@ -143,19 +143,19 @@ else {
 	$options['accept_translations'] = false;
 	$options['i18n_type'] = 'PO';
 	if(array_key_exists('category', $sourceInfo)) {
-		$options['category'] =  $sourceInfo['category'];
+		$options['category'] = $sourceInfo['category'];
 	}
 	$options['content'] = @file_get_contents($potFile);
 	if($options['content'] === false) {
 		throw new Exception("Unable to read content of file '$potFile'.");
 	}
-	$destinationInfo = $transifexer->createResource(C5TT_TRANSIFEX_PROJECT, $options);
+	$destinationInfo = $transifexer->createResource(C5TTConfiguration::$transifexProject, $options);
 	Enviro::write("done.\n");
-	$transifexer->pull(C5TT_TRANSIFEX_PROJECT, C5TT_TRANSIFEX_WORKPATH, false, $args['destination']);
+	$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpath(), false, $args['destination']);
 	Enviro::write("done.\n");
 }
 
-// Let's determine some of the properties to be set in the header entry of the .po files of the destination resource 
+// Let's determine some of the properties to be set in the header entry of the .po files of the destination resource
 Enviro::write('Determining .po properties... ');
 $potProperties = array();
 $props = Gettext::getPoProperties($potFile);
@@ -172,7 +172,7 @@ $transifexDirty = false;
 $poTempFolder = TempFolder::getDefault();
 try {
 	foreach($translationsToClone as $translationToClone) {
-		$destinationPO = TransifexerTranslation::getFilePath(C5TT_TRANSIFEX_WORKPATH, C5TT_TRANSIFEX_PROJECT, $args['destination'], $translationToClone->languageCode);
+		$destinationPO = TransifexerTranslation::getFilePath(C5TTConfiguration::getTransifexWorkpath(), C5TTConfiguration::$transifexProject, $args['destination'], $translationToClone->languageCode);
 		if(is_file($destinationPO)) {
 			// The destination .po file for this language already exists: let's update it.
 			// - add to the destination .po file the translations of the source .po file (destination translations will be kept untouched)
@@ -228,14 +228,14 @@ try {
 
 	// Ok, all the languages have been copied: let's send the local destination files to the Transifex server
 	Enviro::write("Pushing new translations for '{$args['destination']}'... ");
-	$transifexer->push(C5TT_TRANSIFEX_WORKPATH, C5TT_TRANSIFEX_PROJECT, $args['destination']);
+	$transifexer->push(C5TTConfiguration::getTransifexWorkpath(), C5TTConfiguration::$transifexProject, $args['destination']);
 	Enviro::write("done.\n");
 	Enviro::write("All done: now you have to go to the Transifex website and enable translations for the new resource.\n");
 }
 catch(Exception $x) {
 	if($transifexDirty) {
 		try {
-			Enviro::deleteFolder(C5TT_TRANSIFEX_WORKPATH, true);
+			Enviro::deleteFolder(C5TTConfiguration::getTransifexWorkpath(), true);
 		}
 		catch(Exception $x) {
 		}

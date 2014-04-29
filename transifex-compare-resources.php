@@ -1,6 +1,6 @@
 <?php
-define('C5TT_NOTIFYERRORS', false);
-require_once dirname(__FILE__) . DIRECTORY_SEPARATOR . 'includes' . DIRECTORY_SEPARATOR . 'startup.php';
+require_once dirname(__FILE__) . '/includes/startup.php';
+C5TTConfiguration::$notifyErrors = false;
 
 if(!defined('STDIN')) {
 	stopForError("Missing STDIN... Console input needed.");
@@ -10,17 +10,17 @@ if(!defined('STDIN')) {
 Enviro::run('msgcat', '--version');
 Enviro::run('msgcomm', '--version');
 
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'transifexer.php');
-require_once Enviro::mergePath(C5TT_INCLUDESPATH, 'tempfolder.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'transifexer.php');
+require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'tempfolder.php');
 
-$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
+$transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
 
 $resources = array();
 
 global $argv;
 switch(count($argv)) {
 	case 1:
-		$rList = $transifexer->getResources(C5TT_TRANSIFEX_PROJECT);
+		$rList = $transifexer->getResources(C5TTConfiguration::$transifexProject);
 		for($i = 0; $i < 2; $i++) {
 			echo "Specify the " . ($i ? "second" : "first") . " resource:\n";
 			$map = array();
@@ -53,7 +53,7 @@ switch(count($argv)) {
 		}
 		break;
 	case 3:
-		$rList = $transifexer->getResources(C5TT_TRANSIFEX_PROJECT);
+		$rList = $transifexer->getResources(C5TTConfiguration::$transifexProject);
 		foreach($argv as $argi => $arg) {
 			if($argi == 0) {
 				continue;
@@ -82,7 +82,7 @@ switch(count($argv)) {
 $tempFolder = new TempFolder();
 for($i = 0; $i < 2; $i++) {
 	echo "Downloading '{$resources[$i]['name']}'... ";
-	$source = $transifexer->getSource(C5TT_TRANSIFEX_PROJECT, $resources[$i]['slug']);
+	$source = $transifexer->getSource(C5TTConfiguration::$transifexProject, $resources[$i]['slug']);
 	$filename = $tempFolder->getNewFile();
 	$hFile = @fopen($filename, 'wb');
 	if(!$hFile) {

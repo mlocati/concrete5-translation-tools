@@ -2,15 +2,15 @@
 if(!@ini_get('session.auto_start')) {
 	session_start();
 }
-define('C5TT_NOTIFYERRORS', false);
-define('C5TT_IS_WEB', true);
 require_once dirname(realpath(__FILE__)) . '/../includes/startup.php';
+C5TTConfiguration::$notifyErrors = false;
+C5TTConfiguration::$runningEnviro = 'ajax';
 
 switch($action = Request::getString('action', true)) {
 	case 'login':
 		$username = Request::postString('username', true);
 		$password = Request::postString('password', true, false);
-		require_once C5TT_INCLUDESPATH . '/db.php';
+		require_once C5TTConfiguration::$includesPath . '/db.php';
 		$rs = DB::query('select * from C5TTUser where uUsername = ' . DB::escape($username) . ' and uPassword = ' . DB::escape($password) . ' and uDisabled = 0 limit 1');
 		$user = $rs->fetch_assoc();
 		$rs->close();
@@ -32,7 +32,7 @@ switch($action = Request::getString('action', true)) {
 		if(!array_key_exists('user', $_SESSION)) {
 			throw new Exception('Access denied');
 		}
-		$result = C5TT_TRANSIFEX_PACKAGES_PROJECT;
+		$result = C5TTConfiguration::$transifexPackagesProject;
 		break;
 	case 'get-packages':
 		if(!array_key_exists('user', $_SESSION)) {
@@ -54,8 +54,8 @@ switch($action = Request::getString('action', true)) {
 		}
 		$inDB = Request::postInt('inDB', true, -1, 1);
 		$inTX = (Request::postInt('inTX', true, 0, 1) === 0) ? false : true;
-		require_once C5TT_INCLUDESPATH . '/db.php';
-		require_once C5TT_INCLUDESPATH . '/transifexer.php';
+		require_once C5TTConfiguration::$includesPath . '/db.php';
+		require_once C5TTConfiguration::$includesPath . '/transifexer.php';
 
 		if(($inDB === 0) && (!$inTX)) {
 			$newHandle = '';
@@ -135,22 +135,22 @@ switch($action = Request::getString('action', true)) {
 				DB::query($sql);
 			}
 			if(strlen($txOperation) || (!is_null($txUpdatePot))) {
-				$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
+				$transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
 				if(strlen($txOperation)) {
 					switch($txOperation) {
 						case 'CREATE':
-							$transifexer->createResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $txData);
+							$transifexer->createResource(C5TTConfiguration::$transifexPackagesProject, $txData);
 							break;
 						case 'UPDATE':
-							$transifexer->updateResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $editing->pHandle, $txData);
+							$transifexer->updateResource(C5TTConfiguration::$transifexPackagesProject, $editing->pHandle, $txData);
 							break;
 						case 'DELETE':
-							$transifexer->deleteResource(C5TT_TRANSIFEX_PACKAGES_PROJECT, $editing->pHandle);
+							$transifexer->deleteResource(C5TTConfiguration::$transifexPackagesProject, $editing->pHandle);
 							break;
 					}
 				}
 				if(!is_null($txUpdatePot)) {
-					$transifexer->updateResourcePot(C5TT_TRANSIFEX_PACKAGES_PROJECT, $editing->pHandle, file_get_contents($txUpdatePot['file']));
+					$transifexer->updateResourcePot(C5TTConfiguration::$transifexPackagesProject, $editing->pHandle, file_get_contents($txUpdatePot['file']));
 				}
 			}
 			if(strlen($newHandle)) {
@@ -292,16 +292,16 @@ class Package {
 	}
 	public static function getAll() {
 		$packages = array();
-		require_once C5TT_INCLUDESPATH . '/db.php';
+		require_once C5TTConfiguration::$includesPath . '/db.php';
 		$rs = DB::query('select * from C5TTPackage');
 		while($row = $rs->fetch_assoc()) {
 			$row['pNameDB'] = $row['pName'];
 			$packages[] = new self($row);
 		}
 		$rs->close();
-		require_once C5TT_INCLUDESPATH . '/transifexer.php';
-		$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
-		foreach($transifexer->getResources(C5TT_TRANSIFEX_PACKAGES_PROJECT) as $tx) {
+		require_once C5TTConfiguration::$includesPath . '/transifexer.php';
+		$transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
+		foreach($transifexer->getResources(C5TTConfiguration::$transifexPackagesProject) as $tx) {
 			$handle = $tx['slug'];
 			$found = false;
 			foreach(array_keys($packages) as $i) {
@@ -322,14 +322,14 @@ class Package {
 		if(!strlen($h)) {
 			throw new Exception('Missing package handle');
 		}
-		require_once C5TT_INCLUDESPATH . '/db.php';
+		require_once C5TTConfiguration::$includesPath . '/db.php';
 		$rs = DB::query('select * from C5TTPackage where pHandle = ' . DB::escape($h) . ' limit 1');
 		$dbData = $rs->fetch_assoc();
 		$rs->close();
 		$txData = null;
-		require_once C5TT_INCLUDESPATH . '/transifexer.php';
-		$transifexer = new Transifexer(C5TT_TRANSIFEX_HOST, C5TT_TRANSIFEX_USERNAME, C5TT_TRANSIFEX_PASSWORD);
-		foreach($transifexer->getResources(C5TT_TRANSIFEX_PACKAGES_PROJECT) as $tx) {
+		require_once C5TTConfiguration::$includesPath . '/transifexer.php';
+		$transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
+		foreach($transifexer->getResources(C5TTConfiguration::$transifexPackagesProject) as $tx) {
 			if(strcasecmp($tx['slug'], $h) === 0) {
 				$txData = $tx;
 				break;
