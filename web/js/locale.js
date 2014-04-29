@@ -362,7 +362,7 @@ var locale = {
 		BZ: "Belize",
 		CA: "Canada",
 		CC: "Cocos (Keeling) Islands",
-		CD: "Congo (Dem.  Rep.)",
+		CD: "Congo (Dem. Rep.)",
 		CF: "Central African Republic",
 		CG: "Congo (Rep.)",
 		CH: "Switzerland",

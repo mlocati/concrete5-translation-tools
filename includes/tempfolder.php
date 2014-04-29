@@ -71,7 +71,7 @@ class TempFolder {
 	* @param bool $createEmpty [default: false] Should the function create an empty file?
 	* @return string
 	* @throws Exception Throws an Exception if the creation of the temporary file fails.
-	 */
+	*/
 	public function getNewFile($createEmpty = false) {
 		for($i = 0; ; $i++) {
 			$filename = Enviro::mergePath($this->name, "tmp-$i");
