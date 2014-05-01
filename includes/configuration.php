@@ -65,6 +65,10 @@ class C5TTConfiguration {
 	* @var array[C5TTConfigurationGitC5Dev]
 	*/
 	public static $devBranches = array();
+	/** The Transifex project handle for core translations
+	* @var string
+	*/
+	public static $transifexCoreProject = 'concrete5';
 	/** The Transifex project handle for packages translations
 	* @var string
 	*/

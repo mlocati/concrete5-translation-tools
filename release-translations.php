@@ -13,6 +13,9 @@ foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	$devResources[] = $devBranch->transifexResource;
 }
 
+// Let's pull all the Transifex data
+$transifexer->pull(C5TTConfiguration::$transifexCoreProject, C5TTConfiguration::getTransifexWorkpathCore());
+
 // Let's list the Transifex resources
 Enviro::write("Looking for local translation files... ");
 $locales = array();
@@ -22,8 +25,8 @@ if(empty($txTranslations)) {
 	throw new Exception('No translations found');
 }
 foreach($txTranslations as $txTranslation) {
-	if(strcasecmp($txTranslation->projectSlug, C5TTConfiguration::$transifexProject) !== 0) {
-		throw new Exception("The translation {$txTranslation->getName()} is not for the project " . C5TTConfiguration::$transifexProject . ".");
+	if(strcasecmp($txTranslation->projectSlug, C5TTConfiguration::$transifexCoreProject) !== 0) {
+		throw new Exception("The translation {$txTranslation->getName()} is not for the project " . C5TTConfiguration::$transifexCoreProject . ".");
 	}
 	if(!in_array($txTranslation->resourceSlug, $devResources, true)) {
 		if(!array_key_exists($txTranslation->resourceSlug, C5TTConfiguration::$transifexReleased)) {

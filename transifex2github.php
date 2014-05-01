@@ -7,7 +7,7 @@ require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'gitter.php');
 $transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
 
 // Let's pull all the Transifex data
-$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpathCore());
+$transifexer->pull(C5TTConfiguration::$transifexCoreProject, C5TTConfiguration::getTransifexWorkpathCore());
 
 // Let's list all the .po files
 Enviro::write("Looking for downloaded for .po files... ");
@@ -16,8 +16,8 @@ if(empty($translations)) {
 	throw new Exception('No translations found');
 }
 foreach($translations as $translationIndex => $translation) {
-	if(strcasecmp($translation->projectSlug, C5TTConfiguration::$transifexProject) !== 0) {
-		throw new Exception("The translation {$translation->getName()} is not for the project " . C5TTConfiguration::$transifexProject . ".");
+	if(strcasecmp($translation->projectSlug, C5TTConfiguration::$transifexCoreProject) !== 0) {
+		throw new Exception("The translation {$translation->getName()} is not for the project " . C5TTConfiguration::$transifexCoreProject . ".");
 	}
 }
 Enviro::write("done (" . count($translations) . " translations found)\n");
@@ -119,7 +119,7 @@ if($changedTranslationsCount > 0) {
 		$resources[$translation->resourceSlug][$translation->languageCode] = $translationStats[$translationIndex];
 	}
 	$xDoc = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><stats></stats>');
-	$xDoc->addAttribute('project', C5TTConfiguration::$transifexProject);
+	$xDoc->addAttribute('project', C5TTConfiguration::$transifexCoreProject);
 	$xDoc->addAttribute('updated', $now);
 	foreach($resources as $resourceSlug => $languages) {
 		$resourceNode = $xDoc->addChild('resource');
@@ -160,14 +160,14 @@ if($changedTranslationsCount > 0) {
 	}
 	$xProject = null;
 	foreach($xDoc->children() as $x) {
-		if(($x->getName() == 'project') && isset($x['name']) && (C5TTConfiguration::$transifexProject === (string)$x['name'])) {
+		if(($x->getName() == 'project') && isset($x['name']) && (C5TTConfiguration::$transifexCoreProject === (string)$x['name'])) {
 			$xProject = $x;
 			break;
 		}
 	}
 	if(!$xProject) {
 		$xProject = $xDoc->addChild('project');
-		$xProject->addAttribute('name', C5TTConfiguration::$transifexProject);
+		$xProject->addAttribute('name', C5TTConfiguration::$transifexCoreProject);
 	}
 	$latest = array();
 	foreach($xProject->xpath('./stats') as $xStats) {

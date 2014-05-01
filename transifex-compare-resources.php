@@ -20,7 +20,7 @@ $resources = array();
 global $argv;
 switch(count($argv)) {
 	case 1:
-		$rList = $transifexer->getResources(C5TTConfiguration::$transifexProject);
+		$rList = $transifexer->getResources(C5TTConfiguration::$transifexCoreProject);
 		for($i = 0; $i < 2; $i++) {
 			echo "Specify the " . ($i ? "second" : "first") . " resource:\n";
 			$map = array();
@@ -53,7 +53,7 @@ switch(count($argv)) {
 		}
 		break;
 	case 3:
-		$rList = $transifexer->getResources(C5TTConfiguration::$transifexProject);
+		$rList = $transifexer->getResources(C5TTConfiguration::$transifexCoreProject);
 		foreach($argv as $argi => $arg) {
 			if($argi == 0) {
 				continue;
@@ -82,7 +82,7 @@ switch(count($argv)) {
 $tempFolder = new TempFolder();
 for($i = 0; $i < 2; $i++) {
 	echo "Downloading '{$resources[$i]['name']}'... ";
-	$source = $transifexer->getSource(C5TTConfiguration::$transifexProject, $resources[$i]['slug']);
+	$source = $transifexer->getSource(C5TTConfiguration::$transifexCoreProject, $resources[$i]['slug']);
 	$filename = $tempFolder->getNewFile();
 	$hFile = @fopen($filename, 'wb');
 	if(!$hFile) {
