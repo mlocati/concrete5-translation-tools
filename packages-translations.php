@@ -17,8 +17,6 @@ $transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfigurat
 
 // Let's pull all the Transifex data
 $transifexer->pull(C5TTConfiguration::$transifexPackagesProject, C5TTConfiguration::getTransifexWorkpathPackages());
-die('ok');
-
 
 // Let's list the translations
 $translationHandles = getTranslationHandles();
