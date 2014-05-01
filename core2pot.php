@@ -39,6 +39,7 @@ foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	if(!@rename($srcFile, $devBranch->getPotPath())) {
 		throw new Exception("Unable to move the file\n$srcFile\nto\n" . $devBranch->getPotPath());
 	}
+	@chmod($devBranch->getPotPath(), 0777);
 	Enviro::write("done.\n");
 	// All done
 	Enviro::write("POT file generated successfully:\n" . $devBranch->getPotPath() . "\n");
