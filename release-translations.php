@@ -43,16 +43,16 @@ foreach($txTranslations as $txTranslation) {
 }
 // Some consistency check
 foreach(C5TTConfiguration::$transifexReleased as $txResource => $c5versions) {
-	if(!in_array($txResource, $devResources)) {
+	if(in_array($txResource, $devResources)) {
 		throw new Exception("The Transifex resource '$txResource' is defined as a development version and for c5 versions " . implode(', ', $c5versions));
 	}
 	if(!array_key_exists($txResource, $txResources)) {
-		throw new Exception('The Transifex resource \'' . $txResource .'\' is defined in C5TTConfiguration::$devBranches but it\'s not used in Transifex');
+		throw new Exception('The Transifex resource \'' . $txResource .'\' is defined in C5TTConfiguration::$transifexReleased but it\'s not present in Transifex');
 	}
 }
 foreach($devResources as $dev) {
 	if(!array_key_exists($dev, $txResources)) {
-		throw new Exception('The Transifex resource \'' . $dev . '\' is defined in C5TTConfiguration::$transifexReleased but it\'s not used in Transifex');
+		throw new Exception('The Transifex resource \'' . $dev . '\' is defined in C5TTConfiguration::$devBranches but it\'s not present in Transifex');
 	}
 }
 Enviro::write("done (" . count($txTranslations) . " translations found for " . count($locales) . " languages)\n");
