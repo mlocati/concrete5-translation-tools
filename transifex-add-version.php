@@ -50,14 +50,14 @@ else {
 }
 
 // Let's pull all the Transifex data
-$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpath(), true);
+$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpathCore(), true);
 
 // Let's determine the .po files that must be copied from the source resource to the destination resource
 Enviro::write("Listing translations to clone... ");
 $translationsToClone = array();
 $otherProjects = array();
 $otherResources = array();
-foreach(TransifexerTranslation::getAll(C5TTConfiguration::getTransifexWorkpath()) as $translation) {
+foreach(TransifexerTranslation::getAll(C5TTConfiguration::getTransifexWorkpathCore()) as $translation) {
 	if(strcasecmp($translation->projectSlug, C5TTConfiguration::$transifexProject) === 0) {
 		if(strcasecmp($translation->resourceSlug, $args['source']) === 0) {
 			$translationsToClone[] = $translation;
@@ -151,7 +151,7 @@ else {
 	}
 	$destinationInfo = $transifexer->createResource(C5TTConfiguration::$transifexProject, $options);
 	Enviro::write("done.\n");
-	$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpath(), false, $args['destination']);
+	$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpathCore(), false, $args['destination']);
 	Enviro::write("done.\n");
 }
 
@@ -172,7 +172,7 @@ $transifexDirty = false;
 $poTempFolder = TempFolder::getDefault();
 try {
 	foreach($translationsToClone as $translationToClone) {
-		$destinationPO = TransifexerTranslation::getFilePath(C5TTConfiguration::getTransifexWorkpath(), C5TTConfiguration::$transifexProject, $args['destination'], $translationToClone->languageCode);
+		$destinationPO = TransifexerTranslation::getFilePath(C5TTConfiguration::getTransifexWorkpathCore(), C5TTConfiguration::$transifexProject, $args['destination'], $translationToClone->languageCode);
 		if(is_file($destinationPO)) {
 			// The destination .po file for this language already exists: let's update it.
 			// - add to the destination .po file the translations of the source .po file (destination translations will be kept untouched)
@@ -228,14 +228,14 @@ try {
 
 	// Ok, all the languages have been copied: let's send the local destination files to the Transifex server
 	Enviro::write("Pushing new translations for '{$args['destination']}'... ");
-	$transifexer->push(C5TTConfiguration::getTransifexWorkpath(), C5TTConfiguration::$transifexProject, $args['destination']);
+	$transifexer->push(C5TTConfiguration::getTransifexWorkpathCore(), C5TTConfiguration::$transifexProject, $args['destination']);
 	Enviro::write("done.\n");
 	Enviro::write("All done: now you have to go to the Transifex website and enable translations for the new resource.\n");
 }
 catch(Exception $x) {
 	if($transifexDirty) {
 		try {
-			Enviro::deleteFolder(C5TTConfiguration::getTransifexWorkpath(), true);
+			Enviro::deleteFolder(C5TTConfiguration::getTransifexWorkpathCore(), true);
 		}
 		catch(Exception $x) {
 		}

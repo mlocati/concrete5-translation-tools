@@ -7,11 +7,11 @@ require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'gitter.php');
 $transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
 
 // Let's pull all the Transifex data
-$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpath());
+$transifexer->pull(C5TTConfiguration::$transifexProject, C5TTConfiguration::getTransifexWorkpathCore());
 
 // Let's list all the .po files
 Enviro::write("Looking for downloaded for .po files... ");
-$translations = TransifexerTranslation::getAll(C5TTConfiguration::getTransifexWorkpath());
+$translations = TransifexerTranslation::getAll(C5TTConfiguration::getTransifexWorkpathCore());
 if(empty($translations)) {
 	throw new Exception('No translations found');
 }

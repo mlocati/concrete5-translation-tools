@@ -16,7 +16,7 @@ foreach(C5TTConfiguration::$devBranches as $devBranch) {
 // Let's list the Transifex resources
 Enviro::write("Looking for local translation files... ");
 $locales = array();
-$txTranslations = TransifexerTranslation::getAll(C5TTConfiguration::getTransifexWorkpath());
+$txTranslations = TransifexerTranslation::getAll(C5TTConfiguration::getTransifexWorkpathCore());
 $txResources = array();
 if(empty($txTranslations)) {
 	throw new Exception('No translations found');
