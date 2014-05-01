@@ -8,10 +8,10 @@ class DB {
 	private static function getConnection() {
 		static $cn;
 		if(!isset($cn)) {
-			if(!strlen(C5TTConfiguration::$database)) {
+			if(!C5TTConfiguration::$database) {
 				throw new Exception('C5TTConfiguration::$database not set');
 			}
-			$c = @new mysqli(C5TTConfiguration::$database->host, C5TTConfiguration::$database->name, C5TTConfiguration::$database->username, C5TTConfiguration::$database->password);
+			$c = @new mysqli(C5TTConfiguration::$database->host, C5TTConfiguration::$database->username, C5TTConfiguration::$database->password, C5TTConfiguration::$database->name);
 			if($c->connect_errno) {
 				throw new Exception('Database connection error: ' . $c->connect_error);
 			}

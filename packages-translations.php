@@ -11,13 +11,13 @@ Package::readAll();
 if(empty(Package::$all)) {
 	throw new Exception('No packages loaded!');
 }
-
 require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'transifexer.php');
 require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'gitter.php');
 $transifexer = new Transifexer(C5TTConfiguration::$transifexHost, C5TTConfiguration::$transifexUsername, C5TTConfiguration::$transifexPassword);
 
 // Let's pull all the Transifex data
 $transifexer->pull(C5TTConfiguration::$transifexPackagesProject, C5TTConfiguration::getTransifexWorkpathPackages());
+die('ok');
 
 
 // Let's list the translations
