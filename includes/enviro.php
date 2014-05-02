@@ -81,7 +81,7 @@ class Enviro {
 			$rcIsGood = false;
 		}
 		if(!$rcIsGood) {
-			throw new Exception("$command failed with return code $rc.\nCommand output is:\n" . implode("\n", $output));
+			throw new Exception("$command failed with return code $rc.\nCommand line was: $line\nCommand output is:\n" . implode("\n", $output));
 		}
 		return $rc;
 	}
