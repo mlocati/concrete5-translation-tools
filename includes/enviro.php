@@ -71,13 +71,17 @@ class Enviro {
 		if(!is_array($output)) {
 			$output = array();
 		}
+		$rcIsGood = true;
 		if(is_array($goodResult)) {
 			if(array_search($rc, $goodResult) === false) {
-				throw new Exception("$command failed: " . implode("\n", $output));
+				$rcIsGood = false;
 			}
 		}
 		elseif($rc != $goodResult) {
-			throw new Exception("$command failed: " . implode("\n", $output));
+			$rcIsGood = false;
+		}
+		if(!$rcIsGood) {
+			throw new Exception("$command failed with return code $rc.\nCommand output is:\n" . implode("\n", $output));
 		}
 		return $rc;
 	}
