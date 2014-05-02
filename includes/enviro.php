@@ -63,6 +63,7 @@ class Enviro {
 				$line .= ' ' . $arguments;
 			}
 		}
+		$rc = -1;
 		if(@ob_start() === false) {
 			throw new Exception('ob_start failed');
 		}
