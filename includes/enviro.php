@@ -63,21 +63,26 @@ class Enviro {
 				$line .= ' ' . $arguments;
 			}
 		}
-		$output = array();
-		exec($line . ' 2>&1', $output, $rc);
+		if(@ob_start() === false) {
+			throw new Exception('ob_start failed');
+		}
+		@system($line . ' 2>&1', $rc);
+		$ob = @ob_get_contents();
+		@ob_end_clean();
 		if(!@is_int($rc)) {
 			$rc = -1;
 		}
-		if(!is_array($output)) {
-			$output = array();
+		if(!is_string($ob)) {
+			$ob = '';
 		}
+		$output = explode("\n", str_replace("\r", "\n", str_replace("\r\n", "\n", $ob)));
 		if(is_array($goodResult)) {
 			if(array_search($rc, $goodResult) === false) {
-				throw new Exception("$command failed: " . implode("\n", $output));
+				throw new Exception("$command failed: " . $ob);
 			}
 		}
 		elseif($rc != $goodResult) {
-			throw new Exception("$command failed: " . implode("\n", $output));
+			throw new Exception("$command failed: " . $ob);
 		}
 		return $rc;
 	}
