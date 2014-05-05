@@ -25,7 +25,7 @@ foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	Enviro::write("done.\n");
 	// Let's move the .pot file to the final position
 	Enviro::write("Moving the .pot file... ");
-	if(preg_match('/(^|[^.\\d])5\\.6($|[^.\\d])/', $devBranch->version)) {
+	if(preg_match('/(^|[^.\\d])5\\.6($|[^\\d])/', $devBranch->version)) {
 		$srcFile = Enviro::mergePath($webRoot, 'languages', 'messages.pot');
 	}
 	else {
