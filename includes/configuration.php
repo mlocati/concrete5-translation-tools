@@ -265,7 +265,7 @@ C5TTConfiguration::$includesPath = dirname(__FILE__);
 C5TTConfiguration::$workPath = Enviro::mergePath(C5TTConfiguration::$rootPath, 'work');
 C5TTConfiguration::$langcopyBranch = new C5TTConfigurationGitOneBranch('concrete5', 'concrete5-translations', 'master');
 C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-56', '5.6.x', 'transifex/core-dev-5.6.pot', 'concrete5', 'concrete5', 'master');
-C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-57', '5.7.x', 'transifex/core-dev-5.7.pot', 'concrete5', 'concrete5-5.7.0', 'master');
+C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-57', '5.7.x', 'transifex/core-dev-5.7.pot', 'concrete5', 'concrete5-5.7.0', 'develop');
 C5TTConfiguration::$buildtoolsBranch = new C5TTConfigurationGitOneBranch('mlocati', 'concrete5-build', 'master');
 
 C5TTConfiguration::$transifexReleased['core-562'] = array('5.6.2');
