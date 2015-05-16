@@ -1,4 +1,10 @@
 <?php
+/*
+ * For each of the entries of the C5TTConfiguration::$devBranches array, this
+ * script fetches the latest commits and generates a .pot file that can be
+ * fetched by external tools like Transifex. 
+ */
+
 require_once dirname(__FILE__) . '/includes/startup.php';
 
 require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'gitter.php');

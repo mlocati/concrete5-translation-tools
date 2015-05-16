@@ -1,4 +1,13 @@
 <?php
+/*
+ * This script fetches the Transifex package resources and pushed is to the
+ * git repository configured in C5TTConfiguration::$gitPackages:
+ * - in the C5TTConfiguration::$gitPackagesBranchFiles branch commits the
+ *   translations;
+ * - in the C5TTConfiguration::$gitPackagesBranchWeb branch commits the
+ *   statistical data.
+ */
+
 require_once dirname(__FILE__) . '/includes/startup.php';
 
 // Let's include the dependencies

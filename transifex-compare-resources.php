@@ -1,4 +1,8 @@
 <?php
+/*
+ * This script compares two Transifex resources.
+ */
+
 require_once dirname(__FILE__) . '/includes/startup.php';
 C5TTConfiguration::$notifyErrors = false;
 

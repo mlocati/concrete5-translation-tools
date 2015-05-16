@@ -1,4 +1,9 @@
 <?php
+/*
+ * This script fetches the Transifex core resources and creates some stats that
+ * will be used by http://www.concrete5.org/developers/translate/
+ */
+
 require_once dirname(__FILE__) . '/includes/startup.php';
 
 // Let's include the dependencies

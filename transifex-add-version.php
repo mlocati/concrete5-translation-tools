@@ -1,4 +1,9 @@
 <?php
+/*
+ * Useful tool to add a new Transifex resource when a new core version is
+ * released.
+ */
+
 require_once dirname(__FILE__) . '/includes/startup.php';
 
 // Let's parse the script arguments

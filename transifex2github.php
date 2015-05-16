@@ -1,4 +1,9 @@
 <?php
+/*
+ * This script downloads the core translations from Transifex and updates
+ * (if necessary) a repository on GitHub containing the .po and .mo files.
+ */
+
 require_once dirname(__FILE__) . '/includes/startup.php';
 
 // Some initialization
