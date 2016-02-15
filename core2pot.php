@@ -14,7 +14,7 @@ $gitter = new Gitter(C5TTConfiguration::$buildtoolsBranch->host, C5TTConfigurati
 if(!$gitter->localFolderIsGit()) {
 	$gitter->initialize();
 }
-$i18n = Enviro::mergePath(C5TTConfiguration::$buildtoolsBranch->getWorkPath(), 'i18n.php');
+$i18n = Enviro::mergePath(C5TTConfiguration::$buildtoolsBranch->getWorkPath(), 'bin', 'i18n.php');
 
 foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	Enviro::write('WORKING ON CORE v' . $devBranch->version . "\n");
@@ -27,7 +27,7 @@ foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	}
 	// Let's generate the .pot file
 	Enviro::write("Generating .pot file... ");
-	Enviro::run('php', escapeshellarg($i18n) . ' --webroot=' . escapeshellarg($webRoot) . ' --indent=no --createpot=yes --createpo=no --compile=no');
+	Enviro::run('php', escapeshellarg($i18n) . ' --webroot=' . escapeshellarg($webRoot) . ' --createpot=yes --createpo=no --compile=no');
 	Enviro::write("done.\n");
 	// Let's move the .pot file to the final position
 	Enviro::write("Moving the .pot file... ");
