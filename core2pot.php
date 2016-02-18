@@ -9,49 +9,105 @@ require_once dirname(__FILE__) . '/includes/startup.php';
 
 require_once Enviro::mergePath(C5TTConfiguration::$includesPath, 'gitter.php');
 
-// Let's get the repository containing the i18n.php script
-$gitter = new Gitter(C5TTConfiguration::$buildtoolsBranch->host, C5TTConfiguration::$buildtoolsBranch->owner, C5TTConfiguration::$buildtoolsBranch->repository, C5TTConfiguration::$buildtoolsBranch->branch, C5TTConfiguration::$buildtoolsBranch->getWorkPath());
-if(!$gitter->localFolderIsGit()) {
-	$gitter->initialize();
+function getCoreVersion($webRoot) {
+	$versionSchema = null;
+	$configFile = Enviro::mergePath($webRoot, 'concrete', 'config', 'version.php');
+	if (is_file($configFile)) {
+		$versionSchema = 1;
+	} else {
+		$configFile = Enviro::mergePath($webRoot, 'concrete', 'config', 'concrete.php');
+		if (is_file($configFile)) {
+			$versionSchema = 2;
+		}
+	}
+	switch ($versionSchema) {
+		case 1:
+			if(!defined('C5_EXECUTE')) {
+				define('C5_EXECUTE', true);
+			}
+			$APP_VERSION = null;
+			@include $configFile;
+			if (empty($APP_VERSION) || !is_string($APP_VERSION) || ($APP_VERSION === '')) {
+				throw new Exception('Failed to retrieve concrete5 version from file '.$configFile);
+			}
+			$version = $APP_VERSION;
+			break;
+		case 2:
+			$oldErrorLevel = error_reporting(0);
+			$config = @include $configFile;
+			error_reporting($oldErrorLevel);
+			if (!(isset($config) && is_array($config) && isset($config['version']) && isset($config['version']) && is_string($config['version']) && $config['version'] !== '')) {
+				throw new Exception('Failed to retrieve concrete5 version from file '.$configFile);
+			}
+			$version = $config['version'];
+			break;
+		default:
+			throw new Exception($webRoot . ' is not the valid concrete5 web root directory (the version file does not exist).');
+	}
+	return $version;
 }
-$i18n = Enviro::mergePath(C5TTConfiguration::$buildtoolsBranch->getWorkPath(), 'bin', 'i18n.php');
+	
+function buildCorePotFile($webRoot) {
+	$version = getCoreVersion($webRoot);
+}
+// Let's get the repository containing the i18n.php script
 
 foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	Enviro::write('WORKING ON CORE v' . $devBranch->version . "\n");
-	// Let's pull the latest concrete5 core code from GitHub.
+
+	Enviro::write("- Updating local files... ");
 	$gitter = new Gitter($devBranch->host, $devBranch->owner, $devBranch->repository, $devBranch->branch, $devBranch->getWorkPath());
 	$gitter->pullOrInitialize();
 	$webRoot = Enviro::mergePath($devBranch->getWorkPath(), 'web');
 	if(!is_dir($webRoot)) {
 		throw new Exception("Unable to find the folder '$webRoot'");
 	}
-	// Let's generate the .pot file
-	Enviro::write("Generating .pot file... ");
-	Enviro::run('php', escapeshellarg($i18n) . ' --webroot=' . escapeshellarg($webRoot) . ' --createpot=yes --createpo=no --compile=no');
 	Enviro::write("done.\n");
-	// Let's move the .pot file to the final position
-	Enviro::write("Moving the .pot file... ");
-	if(preg_match('/(^|[^.\\d])5\\.6($|[^\\d])/', $devBranch->version)) {
-		$srcFile = Enviro::mergePath($webRoot, 'languages', 'messages.pot');
+
+	Enviro::write("- Detecting version... ");
+	$coreVersion = getCoreVersion($webRoot);
+	if(version_compare($coreVersion, '5.7') < 0) {
+		$directoryToPotify = 'concrete';
+		$potfile2root = '..';
 	}
 	else {
-		$srcFile = Enviro::mergePath($webRoot, 'application', 'languages', 'messages.pot');
+		$directoryToPotify = 'concrete';
+		$potfile2root = '../..';
 	}
-	if(!is_file($srcFile)) {
-		throw new Exception("Unable to find the file '$srcFile'");
+	Enviro::write("$coreVersion\n");
+
+	// Let's generate the .pot file
+	Enviro::write("- Generating .pot file:\n");
+	$translations = new Gettext\Translations();
+	$translations->setHeader('Project-Id-Version', "concrete5 $coreVersion");
+	$translations->setHeader('Report-Msgid-Bugs-To', 'http://www.concrete5.org/developers/bugs/');
+	$translations->setHeader('X-Poedit-Basepath', $potfile2root);
+	$translations->setHeader('X-Poedit-SourceCharset', 'UTF-8');
+	
+	foreach(C5TL\Parser::getAllParsers() as $parser) {
+		if($parser->canParseDirectory()) {
+			Enviro::write('  > parser "' . $parser->getParserName() . '"... ');
+			$parser->parseDirectory(
+				Enviro::MergePath($webRoot, $directoryToPotify),
+				$directoryToPotify,
+				$translations,
+				false,
+				true
+			);
+			Enviro::write("done.\n");
+		}
 	}
-	$destFolder = dirname($devBranch->getPotPath());
+
+	Enviro::write("- Saving .pot file... ");
+	$destFile = $devBranch->getPotPath();
+	$destFolder = dirname($destFile);
 	if(!is_dir($destFolder)) {
 		@mkdir($destFolder, 0777, true);
 		if(!is_dir($destFolder)) {
 			throw new Exception("Unable to create the folder '$destFolder'");
 		}
 	}
-	if(!@rename($srcFile, $devBranch->getPotPath())) {
-		throw new Exception("Unable to move the file\n$srcFile\nto\n" . $devBranch->getPotPath());
-	}
-	@chmod($devBranch->getPotPath(), 0777);
-	Enviro::write("done.\n");
-	// All done
-	Enviro::write("POT file generated successfully:\n" . $devBranch->getPotPath() . "\n");
+	$translations->toPoFile($destFile);
+	@chmod($destFile, 0666);
+	Enviro::write("done ($destFile).\n");
 }

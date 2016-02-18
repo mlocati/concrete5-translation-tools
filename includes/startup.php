@@ -82,7 +82,17 @@ function stopForError($description, $code = null, $file = '', $line = null, $tra
 * @throws Exception Throws an Exception when an error is detected during the script execution.
 */
 function errorCatcher($errno, $errstr, $errfile, $errline) {
+	static $here = false;
+	if ($here === true) {
+		return;
+	}
+	$here = true;
+	if (error_reporting() === 0) {
+		$here = false;
+		return;
+	}
 	stopForError($errstr, $errno, $errfile, $errline);
+	$here = false;
 }
 
 /** Catches a php Exception and dies.
@@ -109,6 +119,7 @@ function executionDone() {
 // Let's include
 require_once dirname(__FILE__) . '/enviro.php';
 require_once dirname(__FILE__) . '/configuration.php';
+require_once C5TTConfiguration::$workPath.'/vendor/autoload.php';
 
 switch(C5TTConfiguration::$runningEnviro) {
 	case 'ajax':

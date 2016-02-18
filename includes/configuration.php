@@ -117,10 +117,6 @@ class C5TTConfiguration {
 	* @var array[string]
 	*/
 	public static $langcopyAuthors = array();
-	/** The repository with the build scripts
-	* @var C5TTConfigurationGitOneBranch
-	*/
-	public static $buildtoolsBranch;
 	/** Returns the full path to the lock file
 	* @return string
 	*/
@@ -266,7 +262,6 @@ C5TTConfiguration::$workPath = Enviro::mergePath(C5TTConfiguration::$rootPath, '
 C5TTConfiguration::$langcopyBranch = new C5TTConfigurationGitOneBranch('concrete5', 'concrete5-translations', 'master');
 C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-56', '5.6.x', 'transifex/core-dev-5.6.pot', 'concrete5', 'concrete5-legacy', 'master');
 C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-57', '5.7.x', 'transifex/core-dev-5.7.pot', 'concrete5', 'concrete5', 'develop');
-C5TTConfiguration::$buildtoolsBranch = new C5TTConfigurationGitOneBranch('mlocati', 'concrete5-build', 'master');
 
 C5TTConfiguration::$transifexReleased['core-562'] = array('5.6.2');
 C5TTConfiguration::$transifexReleased['core-5621'] = array('5.6.2.1');

@@ -1,0 +1,10 @@
+{
+    "config": {
+        "optimize-autoloader": true,
+         "vendor-dir": "work/vendor"
+    },
+    "require": {
+        "php": ">=5.3",
+        "mlocati/concrete5-translation-library": "1.4.2"
+    }
+}
