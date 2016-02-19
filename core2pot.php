@@ -79,6 +79,7 @@ foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	// Let's generate the .pot file
 	Enviro::write("- Generating .pot file:\n");
 	$translations = new Gettext\Translations();
+	$translations->setLanguage('en_US');
 	$translations->setHeader('Project-Id-Version', "concrete5 $coreVersion");
 	$translations->setHeader('Report-Msgid-Bugs-To', 'http://www.concrete5.org/developers/bugs/');
 	$translations->setHeader('X-Poedit-Basepath', $potfile2root);
