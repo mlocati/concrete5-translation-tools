@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "73834acc69974af7226b019be0648fc1",
-    "content-hash": "31eeda265873e4337aa6e4d8f9a6ed55",
+    "hash": "ac8654aa84d263974b1c00f545b3c46a",
+    "content-hash": "9ea92862f3f622cbff9da20d0e607ad7",
     "packages": [
         {
             "name": "gettext/gettext",
@@ -121,16 +121,16 @@
         },
         {
             "name": "mlocati/concrete5-translation-library",
-            "version": "1.4.4",
+            "version": "1.4.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mlocati/concrete5-translation-library.git",
-                "reference": "873a80c46dd92c0f4f8413971c1306eb88520a3f"
+                "reference": "c632aaaec15e62440ba575f6543e5623559b8319"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mlocati/concrete5-translation-library/zipball/873a80c46dd92c0f4f8413971c1306eb88520a3f",
-                "reference": "873a80c46dd92c0f4f8413971c1306eb88520a3f",
+                "url": "https://api.github.com/repos/mlocati/concrete5-translation-library/zipball/c632aaaec15e62440ba575f6543e5623559b8319",
+                "reference": "c632aaaec15e62440ba575f6543e5623559b8319",
                 "shasum": ""
             },
             "require": {
@@ -167,7 +167,7 @@
                 "translate",
                 "translation"
             ],
-            "time": "2016-02-19 16:28:07"
+            "time": "2016-05-10 10:26:35"
         }
     ],
     "packages-dev": [],
