@@ -261,11 +261,13 @@ C5TTConfiguration::$includesPath = dirname(__FILE__);
 C5TTConfiguration::$workPath = Enviro::mergePath(C5TTConfiguration::$rootPath, 'work');
 C5TTConfiguration::$langcopyBranch = new C5TTConfigurationGitOneBranch('concrete5', 'concrete5-translations', 'master');
 C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-56', '5.6.x', 'transifex/core-dev-5.6.pot', 'concrete5', 'concrete5-legacy', 'master');
-C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-57', '5.7.x', 'transifex/core-dev-5.7.pot', 'concrete5', 'concrete5', 'develop');
+//C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-57', '5.7.x', 'transifex/core-dev-5.7.pot', 'concrete5', 'concrete5', 'develop');
+C5TTConfiguration::$devBranches[] = new C5TTConfigurationGitC5Dev('core-dev-8', '8.x', 'transifex/core-dev-8.pot', 'concrete5', 'concrete5', 'develop');
 
 C5TTConfiguration::$transifexReleased['core-562'] = array('5.6.2');
 C5TTConfiguration::$transifexReleased['core-5621'] = array('5.6.2.1');
 C5TTConfiguration::$transifexReleased['core-563'] = array('5.6.3', '5.6.3.1');
+C5TTConfiguration::$transifexReleased['core-dev-57'] = array('5.7.5.7');
 
 C5TTConfiguration::$gitPackages = new C5TTConfigurationGit('concrete5', 'package-translations');
 if(is_file(Enviro::mergePath(C5TTConfiguration::$rootPath . '/configuration/customize.php'))) {
