@@ -58,7 +58,11 @@ foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	Enviro::write("- Updating local files... ");
 	$gitter = new Gitter($devBranch->host, $devBranch->owner, $devBranch->repository, $devBranch->branch, $devBranch->getWorkPath());
 	$gitter->pullOrInitialize();
-	$webRoot = Enviro::mergePath($devBranch->getWorkPath(), 'web');
+	if (version_compare(str_replace('x', '0', $devBranch->version), '8') >= 0) {
+		$webRoot = $devBranch->getWorkPath();
+	} else {
+		$webRoot = Enviro::mergePath($devBranch->getWorkPath(), 'web');
+	}
 	if(!is_dir($webRoot)) {
 		throw new Exception("Unable to find the folder '$webRoot'");
 	}
