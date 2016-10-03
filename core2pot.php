@@ -90,7 +90,7 @@ foreach(C5TTConfiguration::$devBranches as $devBranch) {
 	$translations->setHeader('X-Poedit-SourceCharset', 'UTF-8');
 	
 	foreach(C5TL\Parser::getAllParsers() as $parser) {
-		if($parser->canParseDirectory()) {
+		if($parser->canParseConcreteVersion($devBranch->version) && $parser->canParseDirectory()) {
 			Enviro::write('  > parser "' . $parser->getParserName() . '"... ');
 			$parser->parseDirectory(
 				Enviro::MergePath($webRoot, $directoryToPotify),
