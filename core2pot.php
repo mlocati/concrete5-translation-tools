@@ -26,7 +26,12 @@ function getCoreVersion($webRoot) {
 				define('C5_EXECUTE', true);
 			}
 			$APP_VERSION = null;
-			@include $configFile;
+			
+			$source = file_get_contents($configFile);
+			if (preg_match('/\$APP_VERSION \= \'(.*)\'/', $source, $matches)) {
+				$APP_VERSION = $matches[1];
+			}
+			
 			if (empty($APP_VERSION) || !is_string($APP_VERSION) || ($APP_VERSION === '')) {
 				throw new Exception('Failed to retrieve concrete5 version from file '.$configFile);
 			}
